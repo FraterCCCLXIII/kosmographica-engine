@@ -23,10 +23,8 @@ kosmographica/
 └── docs/
     ├── ARCHITECTURE_REVIEW.md        # rationale & recommendations
     ├── core-meta-model.md            # the universal core + cross-cutting layers
-    ├── modules/
-    │   └── religion-mythology.md     # Religion & Mythology domain module
-    └── source/
-        └── religion_knowledge_graph_spec.docx   # original Word source (archived)
+    └── modules/
+        └── religion-mythology.md     # Religion & Mythology domain module
 ```
 
 ## Federated datasets
