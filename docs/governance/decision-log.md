@@ -84,6 +84,47 @@ search cluster, and message queues are deferred until they earn their place.
 - **Consequences:** Gain SEO/SSG; accept that Next's server/DB features go unused (backend is Python),
   and that Mythographica/time-thread Vite components need porting.
 
+## ADR-010: One contribution envelope + a staging gate for every write
+
+- **Date:** 2026-05-30
+- **Status:** accepted
+- **Context:** Two ways data enters the corpus — **migration** from source systems (Mythographica,
+  Sacred-Lineage, Kosmotheon, time-thread) and **ongoing authoring** (AI agents + human editors).
+  Building two separate write paths would double the validation surface.
+- **Decision:** Both paths converge on **one JSON contribution envelope**
+  (`{meta, entities, relationships, claims, sources}`, generalizing Mythographica's `{meta,nodes,edges}`)
+  and **one pipeline**: `stage → validate → reconcile → review → load → index`. Nothing is written
+  directly to canonical Postgres; everything lands in a `staging` area first.
+- **Consequences:** Single validation/reconciliation/provenance implementation. Migration adapters
+  just emit the envelope. Detail in [federation & ingestion](../architecture/federation-and-ingestion.md).
+
+## ADR-011: Validation failures quarantine, never silently drop
+
+- **Date:** 2026-05-30
+- **Status:** accepted
+- **Context:** "Hard-fail vs. quarantine" for records that fail validation.
+- **Decision:** **Quarantine.** A failing record moves to a quarantine table with a machine-readable
+  reason; the rest of its batch still loads (partial success). Structural errors block that one
+  record; epistemic issues (e.g. high confidence without a source) may pass **only** by being
+  down-ranked to low confidence and flagged. No silent drops, no all-or-nothing batches.
+- **Consequences:** Ingestion is resumable and auditable; a quarantine queue must be triaged.
+
+## ADR-012: No auto-accept for AI-authored claims; provenance trust tiers
+
+- **Date:** 2026-05-30
+- **Status:** accepted
+- **Context:** Population is largely AI-assisted; we need to keep the corpus trustworthy without a
+  human in front of every structural fact.
+- **Decision:** Every record carries a **trust tier**:
+  `machine_unverified → machine_validated → human_reviewed → expert_endorsed`. Deterministic
+  **structural** facts from a trusted source (an entity exists; it has external ID X) may auto-load at
+  `machine_validated`. Every **contestable claim or comparative edge** — and anything AI-authored —
+  requires human review before it reaches `human_reviewed`; sacred/restricted material (CARE/TK)
+  requires community/expert review. Public default surfaces `human_reviewed`+ ; lower tiers are
+  visible only with an explicit "unverified" filter.
+- **Consequences:** Bounded human-review load (claims, not every node) with a clear trust signal that
+  also drives RAG eligibility and public visibility.
+
 ---
 
 ## Still open
