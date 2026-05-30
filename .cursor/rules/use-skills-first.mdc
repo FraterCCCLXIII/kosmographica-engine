@@ -1,0 +1,29 @@
+---
+description: Always check for and use the most appropriate Kosmographica skill before acting
+alwaysApply: true
+---
+
+# Use the most appropriate skill first
+
+Before starting any non-trivial task in this repo, **check whether a project skill applies, and if one
+does, read and follow it before doing anything else.** Skills encode the project's locked-in decisions;
+ignoring them produces non-conformant work.
+
+## Routing map
+
+| If the task is about… | Use skill |
+| --- | --- |
+| Authoring/scaffolding/reviewing a domain module | `kosmographica-module-author` |
+| Authoring entities/claims/relationships or import data | `kosmographica-contribution-envelope` |
+| Verifying AI-authored claims / the entailment gate | `kosmographica-claim-verifier` |
+| Migrating or ingesting a source system | `kosmographica-source-adapter` |
+| Recording a decision / writing or superseding an ADR | `kosmographica-adr` |
+
+## Procedure
+
+1. Match the user's request against the table (and any skill descriptions). Pick the **single best**
+   match; if two apply, the more specific one wins.
+2. Read that skill's `SKILL.md` and follow it. A skill may direct you to others (e.g. an adapter emits
+   the contribution envelope) — follow those too.
+3. If **no** skill clearly applies, proceed normally — do not force-fit a skill.
+4. Briefly tell the user which skill you're applying (or that none matched), then continue.
