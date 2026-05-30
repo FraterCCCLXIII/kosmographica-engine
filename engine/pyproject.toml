@@ -14,6 +14,9 @@ dependencies = [
     "alembic>=1.13",
 ]
 
+[project.scripts]
+kge = "kge.cli:main"
+
 [dependency-groups]
 dev = ["pytest>=8", "httpx>=0.27"]
 
