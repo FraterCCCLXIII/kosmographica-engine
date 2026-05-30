@@ -192,6 +192,12 @@ search cluster, and message queues are deferred until they earn their place.
 - **Consequences:** Saves rebuilding auth/permissions/editor/search/AI-widget; costs a second (TS) app
   backend alongside FastAPI. Engine work (Wave 1) does not depend on this and can start immediately.
   Detail in [foundation-build-plan.md](../program/foundation-build-plan.md).
+- **Update (2026-05-30, post Wave 1):** Wave 1 shipped without resolving this. For v1 the AI is the only
+  writer (publish-then-verify) and the human layer is **observation-only**, delivered as a small
+  from-scratch **read-only Audit Console** (`web/`, Next.js 16 + Tailwind) — *not* NextWiki. This ADR is
+  therefore **narrowed**: it now governs only the future **editorial/write** layer (auth, prose authoring,
+  human promotion of claims), which remains deferred. The hybrid-vs-harvest choice is no longer on the
+  Wave 1 critical path.
 
 ---
 

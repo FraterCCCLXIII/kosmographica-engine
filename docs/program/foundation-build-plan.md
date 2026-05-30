@@ -1,7 +1,22 @@
 # Foundation Build Plan — Wave 1
 
-> **Status:** active plan · **Priority:** P0 · Part of the [spec plan](../PLAN.md).
+> **Status:** Wave 1 **shipped** (1a engine spine · 1b AI write loop · 1c read-only Audit Console) ·
+> **Priority:** P0 · Part of the [spec plan](../PLAN.md).
 > The first wave of building: what to build, what to reuse, and in what order.
+
+## What shipped (code lives in [`engine/`](../../engine) and [`web/`](../../web))
+
+| Wave | Delivered | Where |
+| --- | --- | --- |
+| **1a** | Engine spine: canonical schema (generic entity, trust tiers, bitemporal), KID/UUIDv7, contribution envelope, deterministic validator, Mythographica adapter, ingestion pipeline (`stage→validate→reconcile→load→index`), tier-aware read+audit API, `kge` CLI. Seeded the real **244 entities / 354 relationships / 597 claims / 139 sources** end-to-end (idempotent). | `engine/src/kge/{models,envelope,validation,adapters,pipeline,api,cli}` |
+| **1b** | AI **publish-then-verify** loop (ADR-013): grounded authoring contract + offline `SentenceAuthor`, independent verifier (anti-fabrication + lexical entailment → confidence → route), `verifications` audit table, `reverify()`. | `engine/src/kge/{authoring,verify}.py` |
+| **1c** | **Read-only Audit Console** (Next.js 16, App Router, Tailwind tokens): Overview, AI-validated queue, Disputes, Entity view, Claim verification detail. Typed read-only API client. | `web/src/{app,components,lib}` |
+
+Tests: 34 (pytest, incl. DB-backed pipeline/API/write-loop against an isolated `kosmographica_test` DB).
+Run: `cd engine && docker compose up -d db && uv run alembic upgrade head && uv run pytest`.
+
+The **human editorial/authoring layer (NextWiki) stays deferred** — for v1 the AI is the only writer
+(publish-then-verify) and humans **observe** through the Audit Console.
 
 ## Primary needs (recap)
 
@@ -11,8 +26,8 @@
 | 2 | Contribution envelope + deterministic validator | [federation-and-ingestion](../architecture/federation-and-ingestion.md) | **build** |
 | 3 | Ingestion pipeline + first source adapter (Mythographica) | federation-and-ingestion | **build** (reuse Mythographica `seed_from_json.py`) |
 | 4 | Read API (REST/FastAPI) | [api-contract](../architecture/api-contract.md) | **build** (extend Mythographica API) |
-| 5 | RAG retrieval + publish-then-verify verifier | [rag-engineering](../ai/rag-engineering.md), ADR-013 | **build** (Wave 2) |
-| 6 | Encyclopedia + editorial UI, auth, permissions, search UX, AI widget | [app-architecture](../frontend/app-architecture.md), [design-system](../frontend/design-system.md) | **reuse — NextWiki** (see below) |
+| 5 | RAG retrieval + publish-then-verify verifier | [rag-engineering](../ai/rag-engineering.md), ADR-013 | **built (1b, MVP)** — verifier loop done; RAG retrieval + LLM author/verifier in Wave 2 |
+| 6 | Encyclopedia + editorial UI, auth, permissions, search UX, AI widget | [app-architecture](../frontend/app-architecture.md), [design-system](../frontend/design-system.md) | **read-only Audit Console built (1c)**; full editorial UI **reuse — NextWiki** (deferred, see below) |
 | 7 | Long-form prose / Article layer | core §, ADR-004 | **reuse — NextWiki pages** |
 
 The **engine (1–5) has no off-the-shelf equivalent** — a claim graph with provenance, confidence,
@@ -54,25 +69,30 @@ all of which match our specs — while keeping the novel graph engine clean and 
 NextWiki's components (shadcn UI, Tiptap config, NextAuth setup, widget pattern) into a thin Next.js
 client and drop its tRPC/Drizzle layer. More integration work, fewer moving parts. *Decide in ADR-015.*
 
-## Wave 1 scope — engine spine (UI-decision-independent)
+## Wave 1 scope — engine spine (UI-decision-independent) — DONE
 
-Start here regardless of the NextWiki decision; nothing downstream is coherent without it.
+Started here regardless of the NextWiki decision; nothing downstream is coherent without it.
 
-1. **Repo skeleton** — monorepo: `engine/` (Python, `uv`), `web/` reserved. CI lint/test.
-2. **Canonical schema** — SQLAlchemy 2.0 models for generic `entities`/`relationships`/`claims`/
-   `sources` (+ JSONB, `source_system`/`external_id`, bitemporal `recorded_at`); Alembic migration.
-3. **Contribution envelope** — Pydantic v2 models for `{meta, entities, relationships, claims, sources}`.
-4. **Deterministic validator** — structural + provenance + epistemic checks (data-quality §); the
-   single source of truth the `kosmographica-contribution-envelope` skill calls.
-5. **Mythographica adapter** — `{nodes,edges}` → envelope (reuse `seed_from_json.py`).
-6. **Ingestion MVP** — `stage → validate → reconcile(external-id + exact) → load → index(FTS+pgvector)`.
-7. **Read API MVP** — FastAPI `/v1/entities/{kid}`, `/graph`, `/search` (tier-aware).
-8. **Seed end-to-end** — ingest real Mythographica data; prove the loop on one module.
+- [x] **Repo skeleton** — monorepo: `engine/` (Python, `uv`), `web/` (Next.js). Postgres+pgvector compose.
+- [x] **Canonical schema** — SQLAlchemy 2.0 generic `entities`/`relationships`/`claims`/`sources`
+  (+ JSONB, `source_system`/`external_id`, trust tiers, bitemporal `recorded_at`); Alembic migrations.
+- [x] **Contribution envelope** — Pydantic v2 `{meta, sources, entities, relationships, claims}` with
+  `support_spans` and a `requires_grounding` mode.
+- [x] **Deterministic validator** — structural + provenance + epistemic checks; quarantine on failure.
+- [x] **Mythographica adapter** — `{nodes,edges}` → envelope.
+- [x] **Ingestion MVP** — `stage → validate → reconcile(external-id) → load → index(FTS+pgvector)`, idempotent.
+- [x] **Read API MVP** — FastAPI `/v1/entities/{kid}`, `/graph`, `/search`, `/v1/audit/*` (tier-aware).
+- [x] **Seed end-to-end** — ingested the real Mythographica starter; verified via API/SQL/console.
+- [x] **AI write loop (1b)** + **read-only Audit Console (1c)** (see "What shipped").
 
-**Deferred to later waves:** full RAG + verifier loop (Wave 2), NextWiki integration + editorial UI
-(Wave 2), Sacred-Lineage/time-thread/Kosmotheon adapters (Wave 2–3), developmental lens (needs ADR-003/004).
+**Deferred to later waves:** real RAG retrieval + LLM-backed author/verifier (the current verifier is a
+deterministic lexical stand-in); NextWiki integration + full editorial UI; Sacred-Lineage / time-thread /
+Kosmotheon adapters; developmental lens (needs ADR-003/004); CI; embedding population for semantic search.
 
 ## Open decisions
 
-- [ ] **ADR-015 (proposed):** adopt NextWiki as the human layer (hybrid) vs. harvest-only thin client.
+- [ ] **ADR-015 (proposed):** adopt NextWiki as the human editorial layer (hybrid) vs. harvest-only thin
+  client. *Not blocking* — Wave 1c shipped a from-scratch read-only console; this decision only governs the
+  future **write/editorial** layer.
 - [ ] Engine/corpus license + `kosmographica.org` domain (carried from licensing/IDs specs).
+- [ ] Swap the lexical verifier for an NLI/LLM entailment model + eval suite (rag-engineering.md).
