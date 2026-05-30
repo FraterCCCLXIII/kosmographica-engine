@@ -61,3 +61,7 @@ level-of-detail + virtualization for large subgraphs; traversal bounded by the A
 
 - [x] App shape → **one unified Next.js app**, Vite components ported in (not micro-frontends).
 - [x] Graph library → **D3** in a client island.
+- [x] Public vs. internal split → the **public encyclopedia** is its own read-optimized deployable
+  (`site/`, SSG/ISR + CDN), separate from the internal **Audit Console** (`web/`, always-fresh
+  operator tooling). Mirrors Grokipedia's public-site / editorial-pipeline separation. "Unified app"
+  (ADR-009) applies to the public reader, which later absorbs graph/compare/lens/editorial.

@@ -1,6 +1,6 @@
 # Wave 3 Build Plan
 
-> **Status:** proposed scope · **Priority:** P0 · Part of the [spec plan](../PLAN.md).
+> **Status:** W3.1–W3.3 shipped · W3.4–W3.5 pending · **Priority:** P0 · Part of the [spec plan](../PLAN.md).
 > Builds on [Wave 2](./wave-2-build-plan.md) (real publish-then-verify + a second federated source).
 
 ## Where Wave 2 left off
@@ -84,15 +84,29 @@ W3.5 (human layer + editorial) — parallel track; gated on auth, lands last
 
 W3.1 is the critical path and ships first as a usable public site; W3.4 and W3.5 land incrementally.
 
-## Decisions needed before building
+## Decisions (resolved)
 
-1. **App topology** — extend the existing `web/` into **one app with route groups** (`(public)` +
-   `(audit)`, per ADR-009) vs. a **separate public app** leaving the console as-is. *(Recommend: one
-   unified app, route groups — coherent design system + API client.)*
-2. **Scope of Wave 3** — public site **only** (W3.1–3.3) and push vector + human layer to Wave 4, or
-   the **full** five-stream wave. *(Recommend: ship W3.1–3.3 first; W3.4/3.5 as fast-follows.)*
-3. **Embedding provider** (if W3.4 included) — hosted API vs local; keep it swappable like the LLM.
-4. **ADR-015** (if W3.5 included) — hybrid NextWiki vs from-scratch editorial UI.
+1. **App topology → separate public app.** The public encyclopedia ships as its own read-optimized
+   deployable (`site/`), distinct from the internal Audit Console (`web/`). This mirrors how
+   Grokipedia separates its public reading site from its editorial/generation pipeline: different
+   audiences, auth posture, freshness, and caching (public = SSG/ISR + CDN; console = always-fresh,
+   internal). The public app is itself the "one unified app" of ADR-009 — it will absorb graph,
+   compare, lens, and (behind auth) the editorial UI.
+2. **Scope → site-first (W3.1–W3.3) now**; vector backend (W3.4) and human/editorial layer (W3.5) are
+   fast-follows.
+3. **Embedding provider** (W3.4) — TBD; swappable like the LLM client.
+4. **ADR-015** (W3.5) — hybrid NextWiki vs from-scratch editorial UI; TBD.
+
+## What shipped (W3.1–W3.3 · `site/`)
+
+| Stream | Delivered |
+|---|---|
+| W3.1 | Public Next.js 16 app (`site/`): warm-canvas **design tokens**, landing/browse-by-type, **entity page** (`/{module}/{type}/{slug}`) with description, **cited + trust-rated claims**, connections; **search**. SSG/ISR; public tier clamp via the API. **Trust badges + confidence on every claim.** |
+| W3.2 | Public **slugs** (`slugify(label)-<6hex KID>`) on `EntityOut` + `/v1/entities/by-slug/...` resolver (KID stays internal); `sitemap.xml` (202 URLs) + `robots.txt` + per-page OpenGraph/title metadata. |
+| W3.3 | **D3 graph explorer** island on entity pages — force layout, node color by type, drag, keyboard-navigable, click to traverse. |
+
+CI gains a `site` job (lint · typecheck · build). Engine API tests: 11 pass incl. slug + resolver.
+Run locally: engine on `:8088`, `site` on `:3099`.
 
 ## Deferred to a later wave
 

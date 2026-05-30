@@ -70,7 +70,7 @@ and **federation** decisions are made, so the architecture docs are P0.
 | [`program/roadmap.md`](./program/roadmap.md) | Program-level phased roadmap across all modules and the engine | ✅ draft |
 | [`program/foundation-build-plan.md`](./program/foundation-build-plan.md) | Wave 1 build plan; build-vs-reuse (NextWiki) decision | ✅ shipped |
 | [`program/wave-2-build-plan.md`](./program/wave-2-build-plan.md) | Wave 2: real author/verifier + evals, Sacred-Lineage federation + reconciliation, re-verify worker, CI | ✅ shipped |
-| [`program/wave-3-build-plan.md`](./program/wave-3-build-plan.md) | Wave 3: public-facing encyclopedia (SSG/ISR, trust-badged) + graph explorer; vector backend + human/editorial layer | ✅ proposed |
+| [`program/wave-3-build-plan.md`](./program/wave-3-build-plan.md) | Wave 3: public encyclopedia (`site/`, SSG/ISR, trust-badged) + slugs/SEO + D3 graph (W3.1–3.3 ✅); vector backend + human/editorial layer pending | 🟡 in progress |
 
 ---
 

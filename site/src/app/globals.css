@@ -1,0 +1,67 @@
+@import "tailwindcss";
+
+/*
+ * Kosmographica public encyclopedia — design tokens (frontend/design-system.md).
+ * Warm-canvas base (adapted from Sacred-Lineage DESIGN.md): cream canvas, restrained
+ * accent, serif display + humanist sans. Every UI color references a token — no
+ * hardcoded values — so light/dark and future themes are just alternate token sets.
+ */
+:root {
+  --canvas: #f6f1e7;
+  --surface: #fffdf8;
+  --ink: #211c15;
+  --muted: #6f6657;
+  --border: #e6ddcb;
+  --accent: #5a4fcf;
+  --accent-ink: #4338a8;
+
+  /* Trust tiers (ADR-013) — shown on every record. */
+  --tier-unverified: #b45309;
+  --tier-validated: #2563eb;
+  --tier-reviewed: #059669;
+  --tier-expert: #047857;
+
+  --disputed: #b91c1c;
+  --confidence-track: #e6ddcb;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --canvas: #16130e;
+    --surface: #1d1812;
+    --ink: #ece4d6;
+    --muted: #a99e8b;
+    --border: #322a1f;
+    --accent: #a99bff;
+    --accent-ink: #c4b9ff;
+    --confidence-track: #322a1f;
+  }
+}
+
+@theme inline {
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-tier-unverified: var(--tier-unverified);
+  --color-tier-validated: var(--tier-validated);
+  --color-tier-reviewed: var(--tier-reviewed);
+  --color-tier-expert: var(--tier-expert);
+  --color-disputed: var(--disputed);
+  --color-confidence-track: var(--confidence-track);
+  --font-display: var(--font-display);
+  --font-sans: var(--font-sans);
+}
+
+body {
+  background: var(--canvas);
+  color: var(--ink);
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-display), Georgia, serif;
+}
