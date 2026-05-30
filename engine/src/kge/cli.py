@@ -90,6 +90,34 @@ def _cmd_parity(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_reverify(args: argparse.Namespace) -> int:
+    from .jobs import run_reverify
+
+    with session_scope() as session:
+        delta = run_reverify(
+            session, batch_id=args.batch_id, generator=args.generator, tier=args.tier
+        )
+        print(json.dumps(delta.as_dict(), indent=2))
+    return 0
+
+
+def _cmd_worker(args: argparse.Namespace) -> int:
+    """Inline scheduler (ADR-005: synchronous, no queue) — periodic re-verification."""
+    import time
+
+    from .jobs import run_reverify
+
+    while True:
+        with session_scope() as session:
+            delta = run_reverify(
+                session, batch_id=args.batch_id, generator=args.generator, tier=args.tier
+            )
+            print(json.dumps({"reverify": delta.as_dict()}), flush=True)
+        if args.once:
+            return 0
+        time.sleep(args.interval)
+
+
 def _cmd_eval(args: argparse.Namespace) -> int:
     from .eval import DEFAULT_GOLD, run_eval
 
@@ -129,6 +157,20 @@ def main(argv: list[str] | None = None) -> int:
     par = sub.add_parser("parity", help="source convergence/parity check")
     par.add_argument("source", help="source_system, e.g. sacred_lineage")
     par.set_defaults(func=_cmd_parity)
+
+    rev = sub.add_parser("reverify", help="re-verify AI-grounded claims once (audit delta)")
+    rev.add_argument("--batch-id", default=None)
+    rev.add_argument("--generator", default=None)
+    rev.add_argument("--tier", default=None)
+    rev.set_defaults(func=_cmd_reverify)
+
+    work = sub.add_parser("worker", help="inline scheduler: periodic re-verification (ADR-005)")
+    work.add_argument("--interval", type=float, default=300.0, help="seconds between runs")
+    work.add_argument("--once", action="store_true", help="run a single pass and exit")
+    work.add_argument("--batch-id", default=None)
+    work.add_argument("--generator", default=None)
+    work.add_argument("--tier", default=None)
+    work.set_defaults(func=_cmd_worker)
 
     args = parser.parse_args(argv)
     return args.func(args)
