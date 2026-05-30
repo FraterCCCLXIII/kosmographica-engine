@@ -65,10 +65,21 @@ class GraphOut(BaseModel):
     edges: list[RelationshipOut]
 
 
+class VerificationOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    verifier: str
+    support_label: str
+    support_score: float
+    outcome: str
+    reason: str
+    created_at: dt.datetime
+
+
 class ClaimAuditOut(ClaimOut):
     """A claim plus the human-readable label of what it is about (for the console)."""
 
     about_label: str | None = None
+    verifications: list[VerificationOut] = []
 
 
 class AuditStats(BaseModel):

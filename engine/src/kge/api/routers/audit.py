@@ -13,9 +13,9 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from ...models import Claim, Entity, Relationship
+from ...models import Claim, Entity, Relationship, Verification
 from ..deps import get_session
-from ..schemas import AuditStats, ClaimAuditOut, Page
+from ..schemas import AuditStats, ClaimAuditOut, Page, VerificationOut
 
 router = APIRouter(prefix="/v1/audit", tags=["audit"])
 
@@ -116,4 +116,11 @@ def get_claim(kid: str, session: Session = Depends(get_session)):
     claim = session.get(Claim, kid)
     if claim is None:
         raise HTTPException(status_code=404, detail="claim not found")
-    return _attach_labels(session, [claim])[0]
+    out = _attach_labels(session, [claim])[0]
+    verifications = session.scalars(
+        select(Verification)
+        .where(Verification.claim_id == kid)
+        .order_by(Verification.created_at.desc())
+    ).all()
+    out.verifications = [VerificationOut.model_validate(v) for v in verifications]
+    return out

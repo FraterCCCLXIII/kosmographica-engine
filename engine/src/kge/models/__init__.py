@@ -14,6 +14,7 @@ from .enums import (
 from .external_id import ExternalId
 from .relationship import Relationship
 from .source import Source, claim_sources
+from .verification import Verification
 
 __all__ = [
     "Base",
@@ -24,6 +25,7 @@ __all__ = [
     "Source",
     "claim_sources",
     "ExternalId",
+    "Verification",
     "TrustTier",
     "TIER_RANK",
     "tier_at_least",

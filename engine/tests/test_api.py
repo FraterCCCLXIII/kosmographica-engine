@@ -110,6 +110,23 @@ def test_graph_neighborhood(client, db_session):
     assert body["edges"][0]["predicate"] == "consort"
 
 
+def test_audit_claim_detail_shows_verifications(client, db_session):
+    from kge.authoring import SentenceAuthor, SourceDoc, author_envelope
+    from kge.verify import publish_then_verify
+
+    zeus = _zeus_kid(db_session)
+    source = SourceDoc(ref="d", citation="Burkert", text="Zeus is the king of the gods.")
+    publish_then_verify(db_session, author_envelope(SentenceAuthor(min_len=5), source, about=zeus, batch_id="aiX"))
+    db_session.flush()
+
+    queue = client.get("/v1/audit/claims", params={"batch_id": "aiX"}).json()
+    assert queue["total"] >= 1
+    claim_id = queue["items"][0]["id"]
+    detail = client.get(f"/v1/audit/claims/{claim_id}").json()
+    assert detail["verifications"]
+    assert detail["verifications"][0]["support_label"] == "entailed"
+
+
 def test_audit_stats_and_queue(client):
     stats = client.get("/v1/audit/stats").json()
     assert stats["claims_by_tier"].get("machine_validated", 0) >= 3
