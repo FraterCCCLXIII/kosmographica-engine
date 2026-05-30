@@ -20,7 +20,7 @@ with what parity checks — without disrupting the apps that already work.
 | a | **Core + federation engine** | nothing ingests without it | — |
 | b | **Mythographica** | already claim-shaped (nodes/edges + numeric confidence) → lowest-friction | nodes→entities, edges→relationships+claims |
 | c | **Sacred-Lineage** | rich entities + lineage transmission; tests relationship modeling | Figure/Concept/Text/Practice→entities, Transmission/EntityLink→relationships+claims |
-| d | **time-thread** | supplies the canonical chronology spine | timeline→events + Era/Period entities |
+| d | **time-thread** ⚠️ | *designed* chronology spine, **but on hold** — its current data is not reliably accurate, so it is **not** a federation candidate until corrected upstream | timeline→events + Era/Period entities |
 | e | **Kosmotheon** | prose → structured developmental layer; hardest extraction, do last | frameworks/stages→developmental annotations (depends on ADR-004) |
 
 ### Parity & validation before cutover
