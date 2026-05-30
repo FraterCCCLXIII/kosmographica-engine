@@ -8,32 +8,71 @@ Define how AI agents (and human editors) propose new entities, claims, and relat
 and the validation + human-review gates that keep the corpus trustworthy — since population will be
 largely AI-assisted.
 
-## Decided method (v1)
+## Decided method (v1) — publish-then-verify
 
-Authoring is **not a separate system** — it is the *authoring input* to the shared ingestion pipeline
-([federation-and-ingestion.md](../architecture/federation-and-ingestion.md), ADR-010). Agents and
-editors emit the **same contribution envelope** as migration adapters and pass through the same
-`stage → validate → reconcile → review → load` gate.
+> Governing decision: [ADR-013](../governance/decision-log.md) (supersedes ADR-012). AI **writes
+> directly to canonical**, gated by an automated verifier — not by a human. Humans audit exceptions.
 
-**Trust tiers drive review (ADR-012):**
+Authoring is the *authoring input* to the shared pipeline
+([federation-and-ingestion.md](../architecture/federation-and-ingestion.md), ADR-010): agents emit the
+**same contribution envelope** as migration adapters. The difference from migration is the **verifier
+loop** that lets AI commit to canonical without a human pre-gate.
 
-| Tier | How reached | Public by default? |
+### The write loop
+
+```text
+author agent ─▶ grounded draft (claim + source spans)
+                   │
+                   ▼
+            VERIFIER (independent model + deterministic checks)
+                   │  entailment: does the source actually support the claim?
+                   │  + structural/provenance gate (ADR-011)
+                   ├─ pass ─▶ WRITE to canonical @ machine_validated (confidence = support score)
+                   ├─ conflict with existing claim ─▶ open DISPUTE (both coexist, no overwrite)
+                   └─ fail ─▶ quarantine @ machine_unverified
+                   ▼
+   continuous re-verification job ─▶ recompute confidence · decay stale · flag for human spot-audit
+```
+
+1. **Grounded generation only** — an agent may not assert what it didn't retrieve; each claim carries
+   the exact supporting source span(s). No span → cannot exceed `machine_unverified`.
+2. **Verifier agent** — a *second, independent* model plus deterministic checks runs an entailment
+   check (source-supports-claim) and the structural/provenance gate; the support score *becomes* the
+   claim's confidence. This is the critical dependency — specced in
+   [rag-engineering.md](./rag-engineering.md) with its own eval suite.
+3. **Direct write, append-only & bitemporal** — verified claims land in canonical immediately; writes
+   **supersede, never overwrite** (core §5), so every AI write is reversible.
+4. **Contradiction → dispute** — conflicting claims open a dispute and coexist with provenance; no AI
+   edit wars.
+
+### Trust tiers & visibility (retained from ADR-012)
+
+| Tier | How reached | Public default |
 | --- | --- | --- |
-| `machine_unverified` | raw agent output, staged | no |
-| `machine_validated` | passed automated validation; deterministic structural facts may rest here | no |
-| `human_reviewed` | an editor approved the claim/edge | **yes** |
-| `expert_endorsed` | domain/scholar/community (CARE/TK) sign-off | yes |
+| `machine_unverified` | staged, failed/pending verification | hidden |
+| `machine_validated` | passed the verifier | **visible, badged "AI-generated · unreviewed · N sources"** + confidence |
+| `human_reviewed` | editor spot-audit confirmed | visible, trusted |
+| `expert_endorsed` | domain/scholar/community (CARE/TK) sign-off | visible, authoritative |
 
-**Auto-accept policy:** **no AI-authored claim or comparative edge auto-accepts.** Deterministic
-*structural* facts from a trusted source can auto-load at `machine_validated`; everything contestable
-waits in the human-review queue. Sacred/restricted material always routes to community/expert review.
+### Auditability (the payoff)
 
-**Agent guardrails (non-negotiable):** mandatory sources for medium/high confidence; cautious
-confidence by default; never conflate cognate / parallel / syncretism; developmental readings must be
-attributed (`asserted_by` + framework). Adopted from Mythographica's `comparative-methodology.md`.
+Every record stores `tier + generator + verifier record + sources + bitemporal history`, so auditing
+is a query — e.g. *all `machine_validated`, not-yet-`human_reviewed` claims by model X in batch Y* —
+and any bad write is one supersede away from rollback.
 
-**Reviewer roles (lean):** one review queue with role tags — AI Curator (triage), Domain reviewer,
-Scholar reviewer, Tradition/community reviewer — rather than a heavy multi-stage workflow tool.
+### Carve-out (non-negotiable)
+
+**Sacred/restricted material (CARE / TK Labels) keeps the pre-publication community/expert gate** — no
+AI auto-publish, regardless of verifier outcome.
+
+### Guardrails & human role
+
+- **Agent guardrails:** mandatory sources for medium/high confidence; cautious confidence by default;
+  never conflate cognate / parallel / syncretism; developmental readings attributed (`asserted_by` +
+  framework). Adopted from Mythographica's `comparative-methodology.md`.
+- **Humans audit, not gate:** one queue, role-tagged (AI Curator triage, Domain, Scholar,
+  Tradition/community), working the *flagged / disputed / low-confidence / high-traffic* set and
+  promoting to `human_reviewed` / `expert_endorsed`.
 
 ## Sections to detail
 
@@ -58,6 +97,7 @@ Scholar reviewer, Tradition/community reviewer — rather than a heavy multi-sta
 
 ## Key decisions / open questions
 
-- [x] Auto-accept threshold → **none for claims/edges**; deterministic structural facts only, at
-  `machine_validated` (ADR-012).
-- [ ] Which models are approved for authoring vs. review.
+- [x] Auto-accept → **publish-then-verify** (ADR-013): AI writes to canonical at `machine_validated`
+  when the verifier passes; humans audit post-hoc. Sacred/CARE content excepted (pre-gate retained).
+- [ ] Which models are approved for authoring vs. **verification** (must be independent of the author).
+- [ ] Verifier confidence threshold for `machine_validated` vs. quarantine.

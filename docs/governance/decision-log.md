@@ -112,7 +112,8 @@ search cluster, and message queues are deferred until they earn their place.
 ## ADR-012: No auto-accept for AI-authored claims; provenance trust tiers
 
 - **Date:** 2026-05-30
-- **Status:** accepted
+- **Status:** superseded by ADR-013 (trust tiers retained; the human-pre-gate is replaced by an
+  automated verifier + post-hoc audit)
 - **Context:** Population is largely AI-assisted; we need to keep the corpus trustworthy without a
   human in front of every structural fact.
 - **Decision:** Every record carries a **trust tier**:
@@ -124,6 +125,43 @@ search cluster, and message queues are deferred until they earn their place.
   visible only with an explicit "unverified" filter.
 - **Consequences:** Bounded human-review load (claims, not every node) with a clear trust signal that
   also drives RAG eligibility and public visibility.
+
+## ADR-013: Publish-then-verify — AI writes to canonical, gated by an automated verifier
+
+- **Date:** 2026-05-30
+- **Status:** accepted (supersedes ADR-012)
+- **Context:** We want a Grokipedia-style model where AI **writes directly to the canonical database**
+  at scale, without a human in front of every write — but the corpus must stay auditable and
+  trustworthy. ADR-012's human-pre-gate does not scale to encyclopedic coverage.
+- **Decision:** Flip from *verify-then-publish* to **publish-then-verify**. Keep the ADR-012 trust
+  tiers; change *who/what* gates and *what* the gate controls — **visibility, not the write**:
+  1. **Grounded generation only** — an agent may not assert what it didn't retrieve; every claim
+     carries the exact supporting source span(s).
+  2. **Automated verifier (no human in the loop)** — an independent model + deterministic checks run
+     an **entailment check** (does the cited source actually support the claim?) plus the ADR-011
+     structural/provenance gate. The support score *becomes* the claim's confidence.
+  3. **Direct write, append-only & bitemporal** — verified writes land in canonical immediately at a
+     `machine_*` tier; writes **supersede, never overwrite** (core §5), so every AI write is
+     reversible and fully auditable.
+  4. **Contradiction → dispute, not overwrite** — a conflicting claim opens a dispute; both coexist
+     with provenance (no AI edit wars).
+  5. **Continuous re-verification** — a scheduled job re-checks claims, recomputes confidence, decays
+     stale ones, and flags drift for human spot-audit.
+  6. **Humans move to post-hoc audit** — they review *flagged / disputed / low-confidence /
+     high-traffic* records and promote to `human_reviewed` / `expert_endorsed`, rather than gating
+     every write.
+- **Carve-out (non-negotiable):** sacred/restricted material (CARE / TK Labels) **retains the
+  pre-publication community/expert gate** — no AI auto-publish.
+- **Visibility:** `machine_validated` content is **public but badged** ("AI-generated, unreviewed,
+  N sources") with its confidence shown; `machine_unverified` is hidden.
+- **Auditability (the payoff):** because every record stores `tier + generator + verifier record +
+  sources + bitemporal history`, auditing is a query — e.g. *all `machine_validated`,
+  not-yet-`human_reviewed` claims by model X in batch Y* — and any bad write is one supersede away
+  from rollback.
+- **Consequences:** Scales to AI-driven population; humans audit exceptions, not everything. Cost:
+  `machine_validated` content will contain residual errors (hence the mandatory public badge), and
+  the **verifier's entailment quality becomes a critical dependency** needing its own eval suite
+  (see [rag-engineering.md](../ai/rag-engineering.md)).
 
 ---
 

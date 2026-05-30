@@ -20,6 +20,11 @@ check families in order; results route per [ADR-011](decision-log.md) (**quarant
 3. **Epistemic** *(soft — down-rank + flag)* — `confidence ∈ [0,1]`; speculative links forced to low
    confidence; never equate linguistic cognate / functional parallel / syncretism (Mythographica
    rule). Violations don't drop the record — they cap its confidence and set a flag.
+4. **Citation-support / entailment** *(for AI-authored writes — ADR-013)* — the cited source span must
+   actually **support** the claim (NLI/entailment check by an independent verifier). This catches
+   fabricated citations and citations that don't say what the claim says. The **support score becomes
+   the claim's confidence**; below threshold → quarantine at `machine_unverified`. Specified in
+   [../ai/rag-engineering.md](../ai/rag-engineering.md).
 
 **Outcome routing:** structural/provenance failure → **quarantine** (with machine-readable reason);
 epistemic failure → **load at reduced confidence + flag**; clean → continue to reconcile. A batch

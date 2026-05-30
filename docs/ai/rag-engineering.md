@@ -6,7 +6,25 @@
 ## Purpose
 
 Specify the retrieval engine: how entities become chunks + embeddings, how GraphRAG augments dense
-retrieval with graph traversal, the answer-synthesis guardrails, and the evaluation harness.
+retrieval with graph traversal, the answer-synthesis guardrails, the **claim verifier** that gates
+AI writes (ADR-013), and the evaluation harness.
+
+## Claim verifier (gates AI writes — ADR-013)
+
+The publish-then-verify model lets AI write to canonical only if an **independent verifier** confirms
+the cited source supports the claim. This is a retrieval/grounding problem, so it lives here.
+
+1. **Inputs** — a staged claim + its cited source span(s) + the author model id.
+2. **Entailment check** — an *independent* model (must differ from the author) judges whether the
+   source span **entails / supports / contradicts / is-unrelated-to** the claim. Deterministic checks
+   confirm the source exists in the registered corpus and the span is real (anti-fabrication).
+3. **Score → confidence** — the support score becomes the claim's `confidence`; `contradicts` against
+   an existing claim opens a dispute rather than writing.
+4. **Outcome** — `support ≥ threshold` → write at `machine_validated`; else quarantine at
+   `machine_unverified` (ties to [../governance/data-quality-validation.md](../governance/data-quality-validation.md) check 4).
+5. **Continuous re-verification** — scheduled re-runs recompute confidence and decay stale claims.
+6. **Verifier eval suite** — the verifier is a critical dependency; it needs its own labeled set
+   (supported / fabricated / misattributed claims) tracked in the evaluation harness below.
 
 ## Sections to detail
 
@@ -28,3 +46,4 @@ retrieval with graph traversal, the answer-synthesis guardrails, and the evaluat
 
 - [ ] Embedding model + vector store (ties to architecture).
 - [ ] How deep GraphRAG traverses by default.
+- [ ] Verifier model(s) + support-score threshold for `machine_validated` (ADR-013).
