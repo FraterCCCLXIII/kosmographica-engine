@@ -69,7 +69,7 @@ and **federation** decisions are made, so the architecture docs are P0.
 | [`program/evaluation-metrics.md`](./program/evaluation-metrics.md) | Coverage, claim/source ratios, reconciliation precision, RAG quality | ✅ draft |
 | [`program/roadmap.md`](./program/roadmap.md) | Program-level phased roadmap across all modules and the engine | ✅ draft |
 | [`program/foundation-build-plan.md`](./program/foundation-build-plan.md) | Wave 1 build plan; build-vs-reuse (NextWiki) decision | ✅ shipped |
-| [`program/wave-2-build-plan.md`](./program/wave-2-build-plan.md) | Wave 2 scope: real RAG author/verifier + evals, Sacred-Lineage federation | ✅ proposed |
+| [`program/wave-2-build-plan.md`](./program/wave-2-build-plan.md) | Wave 2: real author/verifier + evals, Sacred-Lineage federation + reconciliation, re-verify worker, CI | ✅ shipped |
 
 ---
 

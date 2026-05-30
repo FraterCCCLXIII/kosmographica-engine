@@ -205,5 +205,19 @@ search cluster, and message queues are deferred until they earn their place.
 
 - **ADR-003 (open): Altitude scale** — adopt Wilber colors vs. neutral Kosmographica scale.
 - **ADR-004 (open): Kosmotheon prose** — structured entities vs. linked `Article` records.
-- **ADR-005 (open): Background jobs** — start with synchronous/inline processing; add Redis + a queue
-  (Celery/RQ) only when ingestion/embedding workloads require async. *(Lean default: defer.)*
+- **ADR-005 (resolved for now): Background jobs** — Wave 2 ships the **inline/synchronous** path:
+  `kge worker` runs re-verification on an interval in-process (no Redis/queue). Add Redis + a queue
+  (Celery/RQ) only when ingestion/embedding workloads force async.
+
+## Wave 2 updates (2026-05-30)
+
+- **ADR-013 (publish-then-verify):** the verifier/author stand-ins are replaced. Author and verifier
+  now call a **provider-agnostic `LLMClient`** (fake/Ollama/OpenAI-compatible) selected by config; the
+  deterministic anti-fabrication + structural gate still runs in front. The lexical scorer remains the
+  **baseline** the LLM verifier must not regress against, enforced by `kge eval` over a gold set.
+  Retrieval grounding uses a swappable `Retriever` (FTS/graph now; **vector/embeddings deferred to
+  Wave 3**).
+- **Entity resolution (entity-resolution.md):** implemented. Deterministic shared-external-ID matches
+  auto-link `sameAs`; name-block scored matches go to a review queue (decided via `kge reconcile`).
+  `external_ids` uniqueness moved to **per-KID** so a shared authority id is the deterministic signal.
+- **Human action layer:** still deferred to Wave 3 (Wave 2 console stays observation-only).

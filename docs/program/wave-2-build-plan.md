@@ -1,7 +1,22 @@
 # Wave 2 Build Plan
 
-> **Status:** proposed scope · **Priority:** P0 · Part of the [spec plan](../PLAN.md).
+> **Status:** ✅ shipped · **Priority:** P0 · Part of the [spec plan](../PLAN.md).
 > Builds directly on [Wave 1](./foundation-build-plan.md) (engine spine + AI write loop + read-only console).
+
+## What shipped
+
+| Stream | Delivered |
+| --- | --- |
+| **W2.1** | Provider-agnostic `LLMClient` (`kge/llm`: fake/Ollama/OpenAI-compatible) · `LLMAuthor` (drops non-verbatim quotes) · LLM/NLI verifier via `make_llm_verifier` behind the existing `Verifier(entailment=)` seam · swappable `Retriever` + `KeywordRetriever` (FTS + 1-hop) · gold eval set + `kge eval` baseline gate |
+| **W2.2** | Sacred-Lineage adapter (stdlib-sqlite loader, partial-tolerant) · cross-source entity resolution (deterministic auto-link; name-block scoring → review; **no cross-tradition auto-merge on name**) · `Reconciliation` model + migration · non-destructive `sameAs` lifecycle + parity check · `/v1/reconcile/*` API + Console **Reconciliation** screen · `kge reconcile`/`parity` CLI. **Seeded live:** Sacred-Lineage = 1,809 entities / 1,177 relationships, converged |
+| **W2.3** | `run_reverify` job emitting an audit delta · inline scheduler per ADR-005 (`kge worker --interval/--once`, `kge reverify`) using the configured verifier |
+| **W2.4** | GitHub Actions CI (ruff + `alembic upgrade head` + pytest on a pgvector service; web eslint + tsc) · ruff config · `engine/.env.example` |
+
+> **Live reconciliation note:** the two current sources cover near-disjoint subjects
+> (Greek/Norse **deities** vs Buddhist/Hindu **figures**), so cross-source overlap is
+> rare and the live queue is ~empty. The mechanism is proven by DB-backed tests; the
+> queue grows as overlapping sources converge. **Embeddings + human action layer remain
+> deferred to Wave 3** as decided. 56 engine tests pass.
 
 ## Where Wave 1 left off
 
