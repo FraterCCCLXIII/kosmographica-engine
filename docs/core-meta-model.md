@@ -332,7 +332,7 @@ core. No module may redefine core fields.
 
 | Module | Status | Representative entity types |
 |---|---|---|
-| **Religion & Mythology** | Specified (`religion_knowledge_graph_spec.md`) | the existing 26 types |
+| **Religion & Mythology** | Specified ([`modules/religion-mythology.md`](./modules/religion-mythology.md)) | the existing 26 types |
 | **Philosophy & Science** | To design | Person, Work, Theory, Field/Discipline, School, Argument |
 | **Art & Culture** | To design | Work (art/music/literature), Movement, Genre, Style, Artist |
 | **Polity & Society** | To design | Polity, Institution, Event, Movement, Law, Office |

@@ -12,10 +12,10 @@ Version 1.2  ·  Architecture, Data Model, Navigation, Comparative Layer, Develo
 > **Module conformance.** This document specifies the **Religion & Mythology domain module** of
 > Kosmographica — the first and best-developed module of a larger system whose mission is a total
 > record of human thought, culture, and development through an integral developmental lens. It
-> **conforms to** the [Kosmographica Core Meta-Model](./docs/kosmographica-core-meta-model.md):
+> **conforms to** the [Kosmographica Core Meta-Model](../core-meta-model.md):
 > the base entity schema below is a *profile* of the core `Entity`; the claim model is the core
 > `Claim` model; the comparative layer is unchanged; and the **integral/developmental layer**
-> (core §4) is layered on top — see §17. See also the [Architecture Review](./docs/ARCHITECTURE_REVIEW.md).
+> (core §4) is layered on top — see §17. See also the [Architecture Review](../ARCHITECTURE_REVIEW.md).
 >
 > Where this document and the core meta-model differ, **the core meta-model governs** (notably:
 > claims use a canonical numeric `confidence` 0.0–1.0 with a derived band — see §15 and §11.2).
@@ -995,7 +995,7 @@ A knowledge graph of this scope requires a serious, structured editorial workflo
 # 17. Integral / Developmental Layer
 
 This is the layer that makes Kosmographica more than a comparative-religion encyclopedia. The full
-schema is defined once, for all modules, in the [Core Meta-Model §4](./docs/kosmographica-core-meta-model.md#4-developmental-integral-layer);
+schema is defined once, for all modules, in the [Core Meta-Model §4](../core-meta-model.md#4-developmental-integral-layer);
 this section gives the Religion & Mythology module's usage. The developmental layer lets any
 entity, claim, text, practice, figure, or movement be read through a developmental framework — and,
 critically, **every such reading is itself a claim** (interpretive and contestable), carrying
@@ -1045,7 +1045,7 @@ entity — samādhi, satori, mystical union) can be accessed at any developmenta
 # 18. Federation & Source Systems
 
 As a Kosmographica module, Religion & Mythology data federates with sibling source systems rather
-than living in a silo (see [Core Meta-Model §6](./docs/kosmographica-core-meta-model.md#6-federation--entity-resolution)).
+than living in a silo (see [Core Meta-Model §6](../core-meta-model.md#6-federation--entity-resolution)).
 
 - Every record carries a `source_system` and keeps its native key; a canonical Kosmographica ID
   (KID) is the join target, with `sameAs` reconciliation mapping native IDs (e.g. Mythographica

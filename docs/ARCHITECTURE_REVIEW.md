@@ -1,6 +1,7 @@
 # Kosmographica — Architecture Review
 
-> Review of `religion_knowledge_graph_spec.md` (v1.1) in light of the broader Kosmographica
+> Review of the Religion & Mythology spec ([`modules/religion-mythology.md`](./modules/religion-mythology.md),
+> originally `religion_knowledge_graph_spec.md` v1.1) in light of the broader Kosmographica
 > vision and the existing sibling datasets it is meant to federate.
 >
 > **Status:** discussion draft · **Date:** 2026-05-29
@@ -22,7 +23,7 @@ under-delivers on the mission in two decisive ways:
 
 This document records what the landscape actually is, what the spec gets right, and the
 highest-leverage improvements. The companion document
-[`kosmographica-core-meta-model.md`](./kosmographica-core-meta-model.md) proposes the concrete schema.
+[`core-meta-model.md`](./core-meta-model.md) proposes the concrete schema.
 
 ---
 
@@ -77,8 +78,8 @@ These should be preserved. The recommendations below extend rather than replace 
 
 ### 4.1 Reframe: federated core + domain modules
 
-The doc is `religion_knowledge_graph_spec`, but the repo is `kosmographica-engine` and the mission is
-total. Restructure as:
+The spec was authored as `religion_knowledge_graph_spec`, but the repo is `kosmographica-engine` and
+the mission is total. Restructure as:
 
 - **A thin universal core** — every entity, regardless of domain, is a node carrying: identity, `Claim[]`,
   `Relationship[]`, `Source[]`, a **temporal anchor**, a **spatial anchor**, and a **developmental
@@ -172,11 +173,14 @@ glossary as an unverified lead, not a load source.
 
 ---
 
-## 6. Proposed deliverables
+## 6. Deliverables (status)
 
-1. **This review** — `docs/ARCHITECTURE_REVIEW.md`.
-2. **The core meta-model** — [`docs/kosmographica-core-meta-model.md`](./kosmographica-core-meta-model.md):
+1. **This review** — [`docs/ARCHITECTURE_REVIEW.md`](./ARCHITECTURE_REVIEW.md). ✅
+2. **The core meta-model** — [`docs/core-meta-model.md`](./core-meta-model.md):
    the thin universal core, the domain-module mechanism, the developmental layer schema, the
-   reconciled claim model, and the federation/entity-resolution design.
-3. *(Optional, later)* reframe `religion_knowledge_graph_spec.md` as the **Religion & Mythology
-   domain module** that conforms to the core meta-model.
+   reconciled claim model, and the federation/entity-resolution design. ✅
+3. **Religion & Mythology module** — [`docs/modules/religion-mythology.md`](./modules/religion-mythology.md),
+   reframed to conform to the core meta-model (claim/confidence aligned, integral layer §17,
+   federation §18). ✅
+4. *(Next)* draft additional domain modules (Philosophy & Science, Art & Culture, …) against the core,
+   and resolve the open questions in core meta-model §10.
