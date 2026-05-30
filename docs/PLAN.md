@@ -34,25 +34,25 @@ and **federation** decisions are made, so the architecture docs are P0.
 
 | Doc | Purpose | Status |
 |---|---|---|
-| [`architecture/system-and-data-architecture.md`](./architecture/system-and-data-architecture.md) | Polystore wiring; **resolves the canonical-store decision** (core §10 Q1) | stub |
-| [`architecture/federation-and-ingestion.md`](./architecture/federation-and-ingestion.md) | The ETL engine: extract→normalize→reconcile→load→validate→index | stub |
-| [`architecture/entity-resolution.md`](./architecture/entity-resolution.md) | How two nodes become one: match features, thresholds, `sameAs` lifecycle, merge/split | stub |
-| [`architecture/identifiers-and-versioning.md`](./architecture/identifiers-and-versioning.md) | KID minting, URI resolution, entity merge/split, schema versioning | stub |
-| [`architecture/api-contract.md`](./architecture/api-contract.md) | Read/write API, import/export contract, query surface for UI + GraphRAG | stub |
-| [`modules/module-authoring-guide.md`](./modules/module-authoring-guide.md) | How to write a conforming domain module (template + rules) | stub |
+| [`architecture/system-and-data-architecture.md`](./architecture/system-and-data-architecture.md) | Polystore wiring; **resolves the canonical-store decision** (core §10 Q1) | ✅ draft |
+| [`architecture/federation-and-ingestion.md`](./architecture/federation-and-ingestion.md) | The ETL engine: extract→normalize→reconcile→load→validate→index | ✅ draft |
+| [`architecture/entity-resolution.md`](./architecture/entity-resolution.md) | How two nodes become one: match features, thresholds, `sameAs` lifecycle, merge/split | ✅ draft |
+| [`architecture/identifiers-and-versioning.md`](./architecture/identifiers-and-versioning.md) | KID minting, URI resolution, entity merge/split, schema versioning | ✅ draft |
+| [`architecture/api-contract.md`](./architecture/api-contract.md) | Read/write API, import/export contract, query surface for UI + GraphRAG | ✅ draft |
+| [`modules/module-authoring-guide.md`](./modules/module-authoring-guide.md) | How to write a conforming domain module (template + rules) | ✅ draft |
 
 ### P1 — Governance, AI, and UI (before/while populating data)
 
 | Doc | Purpose | Status |
 |---|---|---|
-| [`governance/controlled-vocabulary.md`](./governance/controlled-vocabulary.md) | Fresh SKOS scheme, relation-type registry, term-addition quality bar | stub |
-| [`governance/data-quality-validation.md`](./governance/data-quality-validation.md) | Validation rules, quality gates, automated audits | stub |
-| [`ai/rag-engineering.md`](./ai/rag-engineering.md) | Chunking pipeline, embeddings, GraphRAG traversal, guardrails, eval harness | stub |
-| [`ai/ai-authoring-workflow.md`](./ai/ai-authoring-workflow.md) | How agents propose entities/claims; validation + human review gates | stub |
-| [`frontend/design-system.md`](./frontend/design-system.md) | Design tokens + components for the engine UI (adopt Sacred-Lineage tokens) | stub |
-| [`frontend/app-architecture.md`](./frontend/app-architecture.md) | Frontend architecture, routing, state, view composition | stub |
-| [`governance/ethics-and-sovereignty.md`](./governance/ethics-and-sovereignty.md) | Restricted/sacred-content flags, access tiers, TK Label workflow | stub |
-| [`program/migration-and-convergence.md`](./program/migration-and-convergence.md) | How the 4 existing repos converge into the engine, with parity checks | stub |
+| [`governance/controlled-vocabulary.md`](./governance/controlled-vocabulary.md) | Fresh SKOS scheme, relation-type registry, term-addition quality bar | ✅ draft |
+| [`governance/data-quality-validation.md`](./governance/data-quality-validation.md) | Validation rules, quality gates, automated audits | ✅ draft |
+| [`ai/rag-engineering.md`](./ai/rag-engineering.md) | Chunking pipeline, embeddings, GraphRAG traversal, guardrails, eval harness | ✅ draft |
+| [`ai/ai-authoring-workflow.md`](./ai/ai-authoring-workflow.md) | How agents propose entities/claims; validation + human review gates | ✅ draft |
+| [`frontend/design-system.md`](./frontend/design-system.md) | Design tokens + components for the engine UI (adopt Sacred-Lineage tokens) | ✅ draft |
+| [`frontend/app-architecture.md`](./frontend/app-architecture.md) | Frontend architecture, routing, state, view composition | ✅ draft |
+| [`governance/ethics-and-sovereignty.md`](./governance/ethics-and-sovereignty.md) | Restricted/sacred-content flags, access tiers, TK Label workflow | ✅ draft |
+| [`program/migration-and-convergence.md`](./program/migration-and-convergence.md) | How the 4 existing repos converge into the engine, with parity checks | ✅ draft |
 
 ### P2 — Hardening & completeness
 
@@ -62,12 +62,12 @@ and **federation** decisions are made, so the architecture docs are P0.
 | [`modules/art-culture.md`](./modules/art-culture.md) | Domain module (stub) | stub |
 | [`modules/polity-society.md`](./modules/polity-society.md) | Domain module (stub) | stub |
 | [`modules/technology.md`](./modules/technology.md) | Domain module (stub) | stub |
-| [`governance/licensing-and-rights.md`](./governance/licensing-and-rights.md) | Corpus license, source-license propagation, image/IIIF rights | stub |
-| [`governance/security-and-access.md`](./governance/security-and-access.md) | Auth, roles, access control (technical counterpart to editorial roles) | stub |
-| [`governance/decision-log.md`](./governance/decision-log.md) | ADRs — records resolutions of open questions and architectural calls | stub |
-| [`program/non-functional-requirements.md`](./program/non-functional-requirements.md) | Scale, performance, availability, backup | stub |
-| [`program/evaluation-metrics.md`](./program/evaluation-metrics.md) | Coverage, claim/source ratios, reconciliation precision, RAG quality | stub |
-| [`program/roadmap.md`](./program/roadmap.md) | Program-level phased roadmap across all modules and the engine | stub |
+| [`governance/licensing-and-rights.md`](./governance/licensing-and-rights.md) | Corpus license, source-license propagation, image/IIIF rights | ✅ draft (owner sign-off) |
+| [`governance/security-and-access.md`](./governance/security-and-access.md) | Auth, roles, access control (technical counterpart to editorial roles) | ✅ draft |
+| [`governance/decision-log.md`](./governance/decision-log.md) | ADRs — records resolutions of open questions and architectural calls | ✅ active |
+| [`program/non-functional-requirements.md`](./program/non-functional-requirements.md) | Scale, performance, availability, backup | ✅ draft |
+| [`program/evaluation-metrics.md`](./program/evaluation-metrics.md) | Coverage, claim/source ratios, reconciliation precision, RAG quality | ✅ draft |
+| [`program/roadmap.md`](./program/roadmap.md) | Program-level phased roadmap across all modules and the engine | ✅ draft |
 
 ---
 
