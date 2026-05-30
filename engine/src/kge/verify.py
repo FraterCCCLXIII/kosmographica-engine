@@ -8,14 +8,13 @@ confidence and routes visibility:
   * entailment >= threshold        -> accept (promoted to machine_validated / public-badged)
   * otherwise                      -> reject
 
-Every run is recorded in `verifications` so auditing is a query. The entailment scorer
-here is a deterministic lexical-overlap stand-in; swap in an NLI model behind
-`Verifier(entailment=...)` without changing the loop.
+Every run is recorded in `verifications` so auditing is a query. The default entailment
+scorer is a deterministic lexical-overlap baseline; an LLM/NLI model drops in behind
+`Verifier(entailment=...)` (see :func:`make_llm_verifier`) without changing the loop.
 """
 
 from __future__ import annotations
 
-import re
 from collections.abc import Callable
 from dataclasses import dataclass, field
 
@@ -25,38 +24,18 @@ from sqlalchemy.orm import Session
 from .envelope import Envelope
 from .models import Claim, TrustTier, Verification
 from .pipeline import IngestResult, ingest
-
-_WORD = re.compile(r"\w+")
-_STOPWORDS = {
-    "the", "a", "an", "and", "or", "of", "in", "on", "to", "is", "are", "was", "were",
-    "as", "by", "for", "with", "at", "from", "that", "this", "it", "its", "be", "his",
-    "her", "their", "who", "which", "but", "not", "also", "such", "than", "into",
-}
-
-
-def _normalize(text: str) -> str:
-    return re.sub(r"\s+", " ", text.strip().lower())
-
-
-def _content_tokens(text: str) -> set[str]:
-    return {w for w in _WORD.findall(text.lower()) if w not in _STOPWORDS and len(w) > 1}
+from .textsim import lexical_overlap, normalize
 
 
 def spans_present(quotes: list[str], source_text: str) -> bool:
     """Anti-fabrication: every support span must appear verbatim in the source."""
-    haystack = _normalize(source_text)
-    return all(_normalize(q) in haystack for q in quotes if q.strip())
+    haystack = normalize(source_text)
+    return all(normalize(q) in haystack for q in quotes if q.strip())
 
 
 def lexical_entailment(assertion: str, quotes: list[str]) -> float:
     """Fraction of the assertion's content tokens supported by the span tokens."""
-    assertion_tokens = _content_tokens(assertion)
-    if not assertion_tokens:
-        return 0.0
-    span_tokens: set[str] = set()
-    for q in quotes:
-        span_tokens |= _content_tokens(q)
-    return len(assertion_tokens & span_tokens) / len(assertion_tokens)
+    return lexical_overlap(assertion, quotes)
 
 
 @dataclass
@@ -89,6 +68,24 @@ class Verifier:
         return VerificationResult(
             "not_entailed", score, "reject", f"entailment {score} below {self.accept_threshold}"
         )
+
+
+def make_llm_verifier(client=None, *, accept_threshold: float | None = None) -> Verifier:
+    """Build a :class:`Verifier` whose entailment signal comes from an ``LLMClient``.
+
+    The deterministic anti-fabrication (verbatim-span) gate still runs first; the
+    model only scores spans that are actually present in the cited source.
+    """
+    from .config import settings
+    from .llm import get_llm_client
+
+    client = client or get_llm_client()
+    threshold = settings.verify_accept_threshold if accept_threshold is None else accept_threshold
+
+    def _entail(assertion: str, quotes: list[str]) -> float:
+        return client.entail("\n".join(quotes), assertion)
+
+    return Verifier(name=f"nli-verifier:{client.name}", accept_threshold=threshold, entailment=_entail)
 
 
 @dataclass

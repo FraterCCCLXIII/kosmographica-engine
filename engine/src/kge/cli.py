@@ -3,6 +3,7 @@
 Usage:
     kge seed mythographica <path-to-mythgraph.json> [--batch-id ID]
     kge stats
+    kge eval [--gold PATH]
 """
 
 from __future__ import annotations
@@ -54,6 +55,18 @@ def _cmd_stats(_: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_eval(args: argparse.Namespace) -> int:
+    from .eval import DEFAULT_GOLD, run_eval
+
+    report = run_eval(gold_path=args.gold or DEFAULT_GOLD)
+    print(json.dumps(report.as_dict(), indent=2))
+    if not report.passed:
+        print("FAIL: candidate verifier regressed F1 vs lexical baseline", file=sys.stderr)
+        return 1
+    print("PASS")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="kge")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -66,6 +79,10 @@ def main(argv: list[str] | None = None) -> int:
 
     stats = sub.add_parser("stats", help="print corpus counts")
     stats.set_defaults(func=_cmd_stats)
+
+    ev = sub.add_parser("eval", help="evaluate the verifier against the gold set")
+    ev.add_argument("--gold", default=None, help="path to a gold JSONL file")
+    ev.set_defaults(func=_cmd_eval)
 
     args = parser.parse_args(argv)
     return args.func(args)
