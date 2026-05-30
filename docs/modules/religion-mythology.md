@@ -336,6 +336,15 @@ All entity pages share a consistent layout. Sections that have no content for a 
 
 Places are not map points. They are meaning-clusters. A mountain, monastery, city, shrine, underworld, or heavenly realm all qualify as place entities — but with different levels of physical certainty and different layers of religious significance.
 
+> **Temporal handling (per Core Meta-Model §5).** Place dating — and all entity dating in this
+> module — follows the core temporal layer, not a bare `date_range` + `circa` bool:
+> **`Historical Period` / `Era` are first-class entities** (PeriodO-aligned), **contested or fuzzy
+> datings are stored as `Claim`s** (not collapsed to one value), the **time-thread** timeline is the
+> canonical chronology, and the graph is **bitemporal** — every record carries `recorded_at`
+> (transaction-time) while `date_range` encodes valid-time, which is what powers the time-aware
+> views (e.g. §14.5's similarity slider, "significance as understood in century X"). Significance
+> layers (§5.2) are therefore time-bounded per tradition. See [Core Meta-Model §5](../core-meta-model.md#5-temporal-layer).
+
 ## 5.1 Place Taxonomy
 
 | Place Type | Physical Certainty | Examples |
@@ -500,6 +509,16 @@ Every chunk carries structured metadata used for filtered retrieval.
 | Object storage | S3 / R2 / GCS | Images, PDFs, audio, video |
 | Search index | Elasticsearch / Typesense | Full-text and faceted search |
 | Cache layer | Redis | Frequent entity lookups, graph traversals |
+
+## 7.4 GraphRAG (graph-traversal-augmented retrieval)
+
+Dense + sparse retrieval is not sufficient on its own for this corpus. Because a graph store is
+mandated (§7.3) and the most valuable structure lives in the **relationship, claim, comparative, and
+developmental layers**, retrieval is **hybrid + graph-augmented**: after the vector/sparse stage
+selects seed entities, the pipeline **traverses the graph** to pull in connected claims, comparative
+edges, counter-claims, and developmental annotations before answer synthesis. This is what lets the
+AI ground nuance-preserving answers (e.g. the Hermes ↔ Thoth example in §14.6) and surface *all*
+competing claims rather than a single flat passage. See [Core Meta-Model §9](../core-meta-model.md#9-cross-cutting-standards--ethics).
 
 # 8. Knowledge Graph Model
 
