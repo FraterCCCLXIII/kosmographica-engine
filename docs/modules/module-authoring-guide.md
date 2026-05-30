@@ -25,9 +25,13 @@ entity-subtype vocabulary.
 4. **Module relationship & claim types** — additions to the controlled vocabulary (registered per
    [../governance/controlled-vocabulary.md](../governance/controlled-vocabulary.md)).
 5. **Information architecture** — navigation + entity-page sections.
-6. **Developmental layer usage** — how core §4 applies in this domain.
-7. **Federation & source systems** — which datasets feed this module.
-8. **Examples** — worked entity + claim examples.
+6. **Classification axes** — the module's overlapping axes (tradition/theme/period/geography/meta,
+   as applicable) modeled as polyhierarchical facets, following the cross-cutting
+   [taxonomy design principles](../governance/controlled-vocabulary.md#taxonomy-design-principles-cross-module).
+   Must include the domain's **absence/critique** stances, not only its positive content.
+7. **Developmental layer usage** — how core §4 applies in this domain.
+8. **Federation & source systems** — which datasets feed this module.
+9. **Examples** — worked entity + claim examples.
 
 ## Conventions
 

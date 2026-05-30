@@ -62,7 +62,7 @@ The system aligns with established linked-data and cultural-heritage standards:
 
 # 2. Complete Entity Ontology
 
-The ontology consists of 26 top-level entity types. Every entity is a node; all information is expressed through typed relationships with provenance and confidence metadata.
+The ontology consists of the top-level entity types below. Every entity is a node; all information is expressed through typed relationships with provenance and confidence metadata.
 
 ### Traditions & Communities
 
@@ -143,6 +143,16 @@ The ontology consists of 26 top-level entity types. Every entity is a node; all 
 | Claim Record | Explicit provenance-tagged assertions with confidence level |
 | Source / Manuscript | Primary sources, inscriptions, archaeological finds, recordings |
 | Collection / Archive | Libraries, museum collections, manuscript repositories |
+
+### Stances, Non-Belief & Critique
+
+Absence and critique are part of the religious landscape and belong **inside** the ontology, not
+outside it (controlled-vocabulary principle 8).
+
+| Entity Type | Description / Examples |
+| --- | --- |
+| Worldview / Stance | Atheism, agnosticism, secular humanism, deism, pantheism (as held positions) |
+| Critical Movement / Process | Anti-clericalism, secularization, disenchantment, freethought, laïcité |
 
 # 3. Core Data Model
 
@@ -331,6 +341,33 @@ All entity pages share a consistent layout. Sections that have no content for a 
 | 15. AI Summary: Pre-generated RAG-optimized summary |
 | 16. Related Entities: Similar/connected entities |
 | 17. Sources: Full citation list |
+
+## 4.3 Classification Axes & Polyhierarchy
+
+Entities are classified along **multiple overlapping axes at once** — never a single hierarchy. Axis
+membership is stored as **facets / typed relationships** on the entity (per
+[ADR-007](../governance/decision-log.md)), so an entry like *Zen Buddhism* simultaneously sits under
+Tradition → Mahāyāna, Theme → Mysticism, Geography → East Asia, and Period → Medieval. This realizes
+the cross-cutting [taxonomy principles](../governance/controlled-vocabulary.md#taxonomy-design-principles-cross-module).
+
+| Axis | Purpose | Seed vocabulary (built fresh; family membership is a claim, not a fixed parent) |
+| --- | --- | --- |
+| **Tradition / family** | Most intuitive entry point | Abrahamic · Dharmic · Taoic · Indigenous & Tribal (by region) · Ancient & Reconstructed · New Religious Movements · Syncretic & Hybrid · Philosophical & Secular |
+| **Thematic / phenomenological** | Cross-traditional scholarly view | Cosmology & Cosmogony · Deity & Divine Beings · Soteriology · Eschatology · Ritual & Practice · Sacred Texts & Hermeneutics · Law & Ethics · Mysticism & Esoterica · Religious Experience · Sacred Space · Community & Organization · Art, Music & Symbol |
+| **Historical / chronological** | Development over time (uses core temporal layer, §5) | Prehistory · Ancient (to ~500 BCE) · Axial Age (500 BCE–500 CE) · Medieval (500–1500) · Early Modern (1500–1800) · Modern (1800–) |
+| **Geographic / cultural** | Entries that don't map to one tradition | "Religion in Japan," "Religion in Sub-Saharan Africa," etc. |
+| **Scholarly / meta** | The study of religion itself | Theory & methodology · key scholars & works · contested concepts (what counts as "religion"?) · interreligious relations |
+
+**Modeling rules.**
+
+- **Polyhierarchy, not parent tables** — an entry may belong to many axes; membership edges carry
+  provenance and may be `contested`.
+- **Family membership is a claim** — borderline/syncretic cases (Druze, Vodou, secular Buddhism)
+  attach to multiple families with sources rather than one hard-coded parent.
+- **Emic vs. etic** — where insider and scholarly labels diverge (e.g. "Hinduism" as a partly
+  colonial construct), keep both, labeled, on the term record.
+- **Granularity tier** — every article is tagged `overview | mid-level | fine-grained`
+  (e.g. *Buddhism* → *Zen* → *Rinzai kōan practice*) for navigation and RAG targeting.
 
 # 5. Places: Sacred Geography & Mythic Space
 
