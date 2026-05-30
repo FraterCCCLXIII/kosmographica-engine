@@ -42,7 +42,9 @@ swappable seam, so the vector backend drops in later with no other code changes.
   `engine/evals/` + a `kge eval` command. **Acceptance:** ≥1 module re-verified by the LLM verifier; eval
   report committed; confidences reflect real entailment; vector retrieval is a documented TODO seam.
   **Specs:** [rag-engineering](../ai/rag-engineering.md), ADR-013.
-- **Decision needed:** LLM **provider** (hosted API vs. local) — see below. (Embedding provider deferred to Wave 3.)
+- **Provider-agnostic:** author + verifier call a thin `LLMClient` interface (`complete`/`classify`), with
+  config-selected adapters (hosted API **or** local Ollama) and a deterministic offline fake for tests/CI.
+  No provider is pinned; pick the model at build time without touching call sites. (Embeddings deferred to Wave 3.)
 
 ### W2.2 — Second source: Sacred-Lineage adapter + cross-source reconciliation
 
@@ -97,7 +99,8 @@ W2.1 and W2.2 are independent and can run in parallel; W2.3 depends on W2.1's re
 3. **Second source → Sacred-Lineage.** ✅ decided. Imported as a *partial, non-authoritative* contributor
    (incomplete data tolerated; its navigation/UI is **not** a UX model). **time-thread is excluded** — its
    data is not reliably accurate.
-4. **LLM provider** for W2.1 — *open:* hosted API vs. local (Ollama). Affects cost, CI secrets, offline dev.
+4. **LLM provider → provider-agnostic.** ✅ decided. Author/verifier call a thin `LLMClient` interface with
+   config-selected adapters (hosted API or local Ollama) + an offline fake for tests/CI; no model pinned now.
 
 ## Deferred to Wave 3
 
