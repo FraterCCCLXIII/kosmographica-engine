@@ -174,6 +174,25 @@ search cluster, and message queues are deferred until they earn their place.
 - **Consequences:** Simple client + OpenAPI tooling; deep client-shaped queries wait for GraphQL if a
   real need appears. Detail in [api-contract.md](../architecture/api-contract.md).
 
+## ADR-015: Reuse NextWiki for the human layer; build the engine from scratch
+
+- **Date:** 2026-05-30
+- **Status:** **proposed** (needs owner sign-off)
+- **Context:** Whether to build the encyclopedia/editorial UI from scratch or reuse an existing wiki.
+  [FraterCCCLXIII/NextWiki](https://github.com/FraterCCCLXIII/NextWiki) is our own MIT fork: Next.js
+  15 + shadcn + Tailwind + NextAuth + Postgres FTS + an AI widget — matching our frontend specs
+  (ADR-006, ADR-009, design-system, security-and-access) almost exactly. But it is a **page/document
+  wiki**, not a claim-based entity graph, and its backend is TS (tRPC/Drizzle), not our Python engine.
+- **Decision (proposed):** **Hybrid.** Build the canonical graph engine from scratch in
+  Python/FastAPI (no equivalent exists). Adopt NextWiki as the **presentation + editorial + prose**
+  layer, integrated as an **API client to the engine** (per ADR-009): NextWiki serves long-form
+  Article/prose pages (resolving ADR-004), users/permissions, and assets, and re-points its AI widget
+  at the engine's RAG/verifier; both share one Postgres (separate schemas). Fallback: harvest
+  NextWiki components into a thin client and drop its tRPC/Drizzle backend.
+- **Consequences:** Saves rebuilding auth/permissions/editor/search/AI-widget; costs a second (TS) app
+  backend alongside FastAPI. Engine work (Wave 1) does not depend on this and can start immediately.
+  Detail in [foundation-build-plan.md](../program/foundation-build-plan.md).
+
 ---
 
 ## Still open
