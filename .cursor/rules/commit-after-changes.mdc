@@ -1,0 +1,24 @@
+---
+description: Commit (and push) after every completed change in this repo
+alwaysApply: true
+---
+
+# Commit after every change
+
+After completing each self-contained change (a doc edit, a file, a feature slice), **create a git
+commit and push it** — do not batch many unrelated changes into one commit, and do not leave the tree
+dirty at the end of a turn.
+
+## How
+
+1. `git add -A` the relevant files, then commit with a concise message (HEREDOC for the body).
+2. Message style: imperative subject focused on the *why*; match recent `git log` style.
+3. `git push` after committing.
+4. One logical change per commit. If a turn produces several unrelated changes, make several commits.
+
+## Guardrails
+
+- Never commit secrets (`.env`, credentials, keys). Warn instead.
+- Never `git config`, force-push, hard-reset, or `--amend` a pushed commit.
+- If a pre-commit hook fails, fix the issue and make a **new** commit (don't `--amend` or `--no-verify`).
+- Expected lint noise (proper-noun spellcheck, docx table artifacts) is not a reason to block a commit.
