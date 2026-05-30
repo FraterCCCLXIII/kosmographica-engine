@@ -2,12 +2,16 @@
 
 from __future__ import annotations
 
+from pgvector.sqlalchemy import Vector
 from sqlalchemy import Index, Integer, String, UniqueConstraint
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
 from ..ids import entity_kid
 from .base import Base, ProvenanceMixin
+
+# Embedding dimensionality for semantic retrieval (pgvector). Kept small for v1.
+EMBEDDING_DIM = 384
 
 
 class Entity(Base, ProvenanceMixin):
@@ -27,6 +31,9 @@ class Entity(Base, ProvenanceMixin):
     # Bitemporal pairing with ``recorded_at`` (transaction time) from the mixin.
     valid_from: Mapped[int | None] = mapped_column(Integer)
     valid_to: Mapped[int | None] = mapped_column(Integer)
+
+    # Semantic-retrieval embedding (pgvector); populated by the indexing step.
+    embedding: Mapped[list[float] | None] = mapped_column(Vector(EMBEDDING_DIM))
 
     __table_args__ = (
         # One canonical record per (source_system, external_id) for idempotent upserts.
