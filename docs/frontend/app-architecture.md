@@ -7,21 +7,50 @@
 Define the engine's web application architecture: framework, routing, data fetching, state, and how
 the views from the module's information architecture are composed.
 
-## Sections to detail
+## Decided method (v1)
 
-1. **Framework & stack** — choose (Next.js per Sacred-Lineage, or Vite/React per Mythographica &
-   time-thread); SSR vs. SPA; TypeScript throughout.
-2. **Routing & URLs** — entity pages, graph explorer, comparison, timeline, developmental lens,
-   search; shareable/bookmarkable URLs (time-thread precedent).
-3. **Data layer** — API client, caching, the GraphRAG/query API contract
-   ([../architecture/api-contract.md](../architecture/api-contract.md)).
-4. **View composition** — map the module's navigation + entity-page sections (Explore / Research /
-   Tools; entity-page §4.2) to components and routes.
-5. **Key interactive views** — Graph Explorer, Lineage Builder, Comparison View, Comparative Mapping
-   Engine, **Developmental Lens**, RAG Chat, Timeline Explorer, Citation Browser.
-6. **State management** — client/server state boundaries.
-7. **Performance & accessibility** — code-splitting, graph rendering at scale, ARIA/keyboard.
-8. **Admin/editorial UI** — CRUD, review queues, reconciliation review (ties to governance roles).
+**One unified Next.js app** (ADR-009), TypeScript throughout, talking to FastAPI as a pure API client
+([../architecture/api-contract.md](../architecture/api-contract.md)). Not federated micro-frontends —
+a single app keeps navigation, auth, and the design system coherent; the existing Vite apps'
+components are **ported in**, not embedded.
+
+### Rendering strategy
+
+- **Encyclopedia/entity/search pages → SSG/ISR** — crawlable, fast first paint (the SEO rationale for
+  Next, ADR-009). Server components fetch from the API at build/revalidate time.
+- **Interactive tools → client-only islands** — Graph Explorer, Lineage Builder, Comparison View,
+  Comparative Mapping Engine, Developmental Lens, Timeline Explorer, RAG Chat. These hydrate on the
+  client and stream from the API.
+
+### Routing & URLs
+
+Shareable, bookmarkable URLs (time-thread precedent): `/{module}/{type}/{slug-or-kid}` for entities,
+plus `/graph`, `/compare`, `/timeline`, `/lens`, `/search`, `/chat`. Tool state lives in query params
+so views are linkable.
+
+### Data layer
+
+Typed API client generated from the OpenAPI spec; server-component fetches for SSG/ISR pages, a
+client cache (TanStack Query) for islands. **Every rendered record shows its trust tier + confidence
+badge** (ADR-013) — the UI is the place the publish-then-verify labeling becomes visible to readers,
+including an "unverified" filter toggle.
+
+### View composition
+
+Map the module IA (Explore / Research / Tools) and the entity-page sections (religion module §4.2) to
+components + routes. Entity page = server-rendered shell + lazy islands for its graph/media panels.
+
+### Editorial UI
+
+Authenticated admin surface for review queues, reconciliation adjudication, and sensitivity/promotion
+actions — mapped to the role scopes in
+[../governance/security-and-access.md](../governance/security-and-access.md). Writes submit
+contribution envelopes; no direct CRUD.
+
+### Graph rendering
+
+**D3** for the graph/lineage views (already proven in Mythographica), wrapped in a React island with
+level-of-detail + virtualization for large subgraphs; traversal bounded by the API depth cap.
 
 ## Existing assets to adopt
 
@@ -30,5 +59,5 @@ the views from the module's information architecture are composed.
 
 ## Key decisions / open questions
 
-- [ ] One unified app vs. federated micro-frontends per existing repo.
-- [ ] Graph rendering library (D3 already used in Mythographica).
+- [x] App shape → **one unified Next.js app**, Vite components ported in (not micro-frontends).
+- [x] Graph library → **D3** in a client island.
