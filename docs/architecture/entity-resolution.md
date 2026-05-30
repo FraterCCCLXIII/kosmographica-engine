@@ -8,21 +8,52 @@
 Define how the engine decides that records from different source systems (and external authorities)
 refer to **the same entity**, and how that decision is recorded, reviewed, and revised.
 
-## Sections to detail
+## Decided method (v1)
 
-1. **Matching signals** — name + alternate names (transliteration-aware), tradition/family, type,
-   date range, region, external IDs (Wikidata bridge), embedding similarity.
-2. **Scoring & thresholds** — combine signals into a match score; auto-merge / review / reject bands.
-3. **`sameAs` lifecycle** — proposal → review → accepted/rejected; `match_method` and `confidence`
-   on each reconciliation row.
-4. **Human-in-the-loop** — review queue, who adjudicates (ties to editorial roles), audit trail.
-5. **Merge & split semantics** — what happens to KIDs, claims, and relationships on merge/split
-   (coordinate with [identifiers-and-versioning.md](./identifiers-and-versioning.md)).
-6. **Conflict handling** — when sources disagree on attributes: keep both as claims, never silently
-   overwrite (consistent with the claim layer).
-7. **Cross-tradition caution** — do **not** auto-merge across traditions on name similarity alone
-   (e.g. Inanna ≠ Ishtar by default); such links are comparative claims, not identity.
-8. **Evaluation** — precision/recall on a labeled reconciliation set (ties to evaluation-metrics).
+This is **stage [3] of the ingestion pipeline** — see
+[federation-and-ingestion.md](./federation-and-ingestion.md). It runs after validation and produces
+**merge/insert proposals**, never destructive merges. Identity is a `sameAs` mapping, not an
+overwrite.
+
+### Matching, cheapest signal first
+
+1. **Deterministic (external ID)** — if a staged record shares an external authority ID (Wikidata,
+   VIAF, GeoNames, Pleiades…) with an existing entity, it's the **same** entity. No scoring needed.
+   This resolves the large majority of cross-source matches for free.
+2. **Blocking** — for the rest, generate candidates by cheap keys: normalized name / alternate names
+   (transliteration-folded) **within the same `type` and `module`**. Avoids all-pairs comparison.
+3. **Scoring** — combine signals into a score: name similarity, type match, date-range overlap,
+   region, and — only if still ambiguous — embedding similarity of the entity's summary.
+
+### Bands (lean automation)
+
+| Score | Action |
+| --- | --- |
+| external-ID match | auto-link `sameAs` at `machine_validated` |
+| high | auto-link, flagged for spot-audit |
+| medium | **review queue** (human decides) |
+| low | insert as a new entity |
+
+### `sameAs` lifecycle & records
+
+Each reconciliation row stores `match_method` (deterministic / scored / manual), `score`,
+`confidence`, and status (`proposed → accepted | rejected`). Rejections are remembered so the pair is
+not re-proposed. Links are revisable — reconciliation is never final.
+
+### Non-negotiable rules
+
+- **Conflict → keep both as claims.** When sources disagree on an attribute, both values persist as
+  claims with their provenance; resolution never silently overwrites (consistent with the claim layer).
+- **No cross-tradition auto-merge on name alone.** *Inanna ≠ Ishtar* by default; *Hermes ≠ Thoth*.
+  Such links are **comparative edges** (equivalence/parallel), not identity. Identity merges stay
+  within a tradition unless an external ID proves otherwise.
+- **Merge/split is non-destructive** — see [identifiers-and-versioning.md](./identifiers-and-versioning.md)
+  for KID redirect/tombstone semantics; claims and relationships re-point, never vanish.
+
+### Deferred until forced
+
+- Learned/ML matching models — v1 uses the rule+score ladder above.
+- Cross-lingual embedding matching at scale — start with transliteration folding + summary embeddings.
 
 ## Existing assets to adopt
 
@@ -30,5 +61,5 @@ refer to **the same entity**, and how that decision is recorded, reviewed, and r
 
 ## Key decisions / open questions
 
-- [ ] Embedding model + similarity threshold for candidate generation.
-- [ ] Degree of automation vs. mandatory human review per match band.
+- [x] Automation per band → **external-ID & high auto-link; medium → human; low → new entity**.
+- [ ] Embedding model + similarity threshold for the ambiguous-case tie-breaker (ties to rag-engineering).

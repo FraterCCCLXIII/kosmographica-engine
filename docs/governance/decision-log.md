@@ -163,6 +163,17 @@ search cluster, and message queues are deferred until they earn their place.
   the **verifier's entailment quality becomes a critical dependency** needing its own eval suite
   (see [rag-engineering.md](../ai/rag-engineering.md)).
 
+## ADR-014: Primary API = REST/JSON; defer GraphQL and SPARQL
+
+- **Date:** 2026-05-30
+- **Status:** accepted
+- **Context:** The original core question "GraphQL vs. REST" for the read API.
+- **Decision:** **REST/JSON over FastAPI**, versioned `/v1`, with `expand=` params for layer loading
+  and an `/entities/{kid}/graph` route for bounded subgraph traversal. GraphQL and a SPARQL endpoint
+  are deferred (RDF/JSON-LD export covers linked-data needs in v1).
+- **Consequences:** Simple client + OpenAPI tooling; deep client-shaped queries wait for GraphQL if a
+  real need appears. Detail in [api-contract.md](../architecture/api-contract.md).
+
 ---
 
 ## Still open

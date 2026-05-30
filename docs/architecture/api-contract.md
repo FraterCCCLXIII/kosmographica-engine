@@ -7,28 +7,59 @@
 Define the engine's external interface: how clients read/write the graph, how data is imported and
 exported, and the query surface that powers the UI and GraphRAG.
 
-## Sections to detail
+## Decided method (v1)
 
-1. **API style** — REST vs. GraphQL (or both: GraphQL for reads, REST for bulk import). Decide.
-2. **Read endpoints** — entity fetch, relationship/claim expansion, comparative edges, developmental
-   annotations, search, graph traversal (subgraph around an entity).
-3. **Write endpoints** — entity/claim/relationship CRUD; bulk import (the MythGraph JSON contract);
-   reconciliation proposals.
-4. **Import/export contract** — adopt and generalize Mythographica's `{meta,nodes,edges}` JSON
-   (`/import/json`, `/export/json`); JSON-LD / RDF export; IIIF manifests.
-5. **Query surface for GraphRAG** — traversal + filter API the retrieval pipeline calls (see
-   [../ai/rag-engineering.md](../ai/rag-engineering.md)).
-6. **AuthN/AuthZ** — token model, scopes, restricted-content gating (see
-   [../governance/security-and-access.md](../governance/security-and-access.md)).
-7. **Versioning, pagination, errors, rate limits** — API conventions.
-8. **SPARQL endpoint** — for linked-data consumers.
+**REST/JSON over FastAPI** (ADR-014). GraphQL is deferred — the read patterns (entity + bounded
+subgraph expansion) are well served by a few REST endpoints with `expand` params, and REST keeps the
+client and OpenAPI tooling simple. Versioned under `/v1`.
+
+### Read endpoints
+
+| Endpoint | Returns |
+| --- | --- |
+| `GET /v1/entities/{kid}?expand=relationships,claims,comparative,developmental` | one entity + chosen layers |
+| `GET /v1/entities/{kid}/graph?depth=1&edge_types=...` | bounded subgraph (recursive CTE; capped depth) |
+| `GET /v1/claims?about={kid}` | claims about an entity, with sources + confidence + tier |
+| `GET /v1/search?q=&module=&type=&tier=` | FTS + filters (Postgres FTS, ADR-006) |
+| `GET /v1/search/semantic?q=` | pgvector similarity (ADR-008) |
+
+All read responses carry each record's **trust tier + confidence** so clients can badge/filter
+(ADR-013). Default public reads return `human_reviewed`+ unless `?tier=` opts into lower tiers.
+
+### Write endpoints
+
+Writes go **through the pipeline, not direct table CRUD**:
+
+- `POST /v1/contributions` — submit a **contribution envelope** (ADR-010); returns a `batch_id`.
+- `GET /v1/contributions/{batch_id}` — staging/validation/quarantine status.
+- `POST /v1/reconciliations/{id}:accept|reject` — adjudicate a `sameAs` proposal (review role).
+
+### Import / export
+
+- **Import:** the contribution envelope (`POST /v1/contributions`) is the single ingress; the legacy
+  Mythographica `{meta,nodes,edges}` shape is accepted via the source adapter, not a separate route.
+- **Export:** `GET /v1/export?module=&format=jsonld|rdf|json` for linked-data + bulk; IIIF manifests
+  for media when that layer exists.
+
+### GraphRAG query surface
+
+The retrieval pipeline ([../ai/rag-engineering.md](../ai/rag-engineering.md)) calls the same
+`/entities/{kid}/graph` traversal + `/search/semantic` internally — no separate private API.
+
+### Conventions
+
+- **Auth:** bearer tokens with scopes; restricted/sacred content gated server-side
+  ([../governance/security-and-access.md](../governance/security-and-access.md)). Public read is
+  unauthenticated for `human_reviewed`+ content; writes always authenticated.
+- **Pagination:** cursor-based. **Errors:** RFC 9457 problem+json. **Rate limits:** per-token.
+- **SPARQL endpoint:** deferred (RDF export covers v1 linked-data needs).
 
 ## Existing assets to adopt
 
 - Mythographica M1 API: `GET /graph`, `/export/json`, `POST /import/json`, `/entities/{id}`,
-  `/assertions?entity_id=`.
+  `/assertions?entity_id=` — generalized into the routes above.
 
 ## Key decisions / open questions
 
-- [ ] GraphQL vs. REST for the primary read API.
-- [ ] Public read API vs. authenticated-only at launch.
+- [x] API style → **REST/JSON (ADR-014)**; GraphQL + SPARQL deferred.
+- [ ] Public-read vs. authenticated-only at launch (ties to security-and-access).
