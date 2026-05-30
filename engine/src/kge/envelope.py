@@ -73,6 +73,12 @@ class Envelope(BaseModel):
     batch_id: str | None = None
     meta: dict = Field(default_factory=dict)
 
+    # Grounded-generation mode (ADR-013). When True (AI authoring), every claim MUST
+    # carry a non-empty support span quoting its source, or it is quarantined. Federated
+    # source imports leave this False: claims are sourced (citations) but not span-grounded,
+    # so missing spans are warnings, not errors.
+    requires_grounding: bool = False
+
     sources: list[SourceIn] = Field(default_factory=list)
     entities: list[EntityIn] = Field(default_factory=list)
     relationships: list[RelationshipIn] = Field(default_factory=list)

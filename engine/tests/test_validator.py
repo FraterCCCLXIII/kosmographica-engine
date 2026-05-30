@@ -13,6 +13,7 @@ def _good_envelope() -> Envelope:
     return Envelope(
         source_system="mythographica",
         generator="test",
+        requires_grounding=True,
         sources=[SourceIn(ref="s1", citation="Hesiod, Theogony", uri="urn:cts:greekLit:tlg0020.tlg001")],
         entities=[
             EntityIn(ref="zeus", module="religion-mythology", type="Deity", label="Zeus"),
@@ -45,13 +46,22 @@ def test_unresolved_relationship_target_quarantines():
     assert any(i.code == "rel.unresolved_object" for i in report.errors)
 
 
-def test_claim_without_source_or_span_fails():
-    env = _good_envelope()
+def test_claim_without_source_or_span_fails_in_grounded_mode():
+    env = _good_envelope()  # requires_grounding=True
     env.claims[0].source_refs = []
     env.claims[0].support_spans = []
     report = validate_envelope(env)
     codes = {i.code for i in report.errors}
     assert {"claim.no_source", "claim.no_support_span"} <= codes
+
+
+def test_missing_span_is_only_warning_for_source_imports():
+    env = _good_envelope()
+    env.requires_grounding = False  # federated source import
+    env.claims[0].support_spans = []
+    report = validate_envelope(env)
+    assert report.ok  # loads
+    assert any(i.code == "claim.no_support_span" for i in report.warnings)
 
 
 def test_confidence_out_of_range_fails():

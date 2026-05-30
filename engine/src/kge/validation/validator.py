@@ -118,6 +118,8 @@ def _structural(env: Envelope, report: ValidationReport) -> None:
 
 
 def _provenance(env: Envelope, report: ValidationReport) -> None:
+    # Missing/empty spans are a hard error only in grounded (AI authoring) mode.
+    span_severity = "error" if env.requires_grounding else "warning"
     for c in env.claims:
         if not c.source_refs:
             report.add("claim.no_source", "claim has no source", where=c.about)
@@ -126,12 +128,18 @@ def _provenance(env: Envelope, report: ValidationReport) -> None:
             report.add(
                 "claim.no_support_span",
                 "claim has no support span (grounded generation required)",
+                severity=span_severity,
                 where=c.about,
             )
         else:
             for span in c.support_spans:
                 if not span.quote.strip():
-                    report.add("span.empty_quote", "support span quote is empty", where=c.about)
+                    report.add(
+                        "span.empty_quote",
+                        "support span quote is empty",
+                        severity=span_severity,
+                        where=c.about,
+                    )
 
 
 def _epistemic(env: Envelope, report: ValidationReport) -> None:
