@@ -54,6 +54,30 @@ def _get_visible_entity(session: Session, kid: str, tiers: list[str]) -> Entity:
     return entity
 
 
+@router.get("/by-slug/{module}/{type}/{slug}", response_model=EntityDetailOut)
+def get_entity_by_slug(
+    module: str,
+    type: str,
+    slug: str,
+    session: Session = Depends(get_session),
+    tiers: list[str] = Depends(visible_tiers),
+):
+    # The slug ends in the 6-hex KID suffix (schemas.EntityOut.slug); resolve by it.
+    suffix = slug.rsplit("-", 1)[-1]
+    entity = session.scalar(
+        select(Entity).where(
+            Entity.module == module,
+            Entity.type == type,
+            Entity.id.like(f"%{suffix}"),
+            Entity.tier.in_(tiers),
+            Entity.sensitivity.in_(PUBLIC_SENSITIVITIES),
+        )
+    )
+    if entity is None:
+        raise HTTPException(status_code=404, detail="entity not found")
+    return _entity_detail(session, entity, tiers)
+
+
 @router.get("/{kid:path}/graph", response_model=GraphOut)
 def entity_graph(
     kid: str,
@@ -93,10 +117,14 @@ def get_entity(
     tiers: list[str] = Depends(visible_tiers),
 ):
     entity = _get_visible_entity(session, kid, tiers)
+    return _entity_detail(session, entity, tiers)
+
+
+def _entity_detail(session: Session, entity: Entity, tiers: list[str]) -> EntityDetailOut:
     claims = session.scalars(
         select(Claim)
         .where(
-            Claim.about_id == kid,
+            Claim.about_id == entity.id,
             Claim.about_kind == "entity",
             Claim.tier.in_(tiers),
             Claim.sensitivity.in_(PUBLIC_SENSITIVITIES),

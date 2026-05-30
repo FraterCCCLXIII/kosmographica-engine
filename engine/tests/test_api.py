@@ -103,6 +103,22 @@ def test_search(client):
     assert hits and hits[0]["entity"]["label"] == "Hera"
 
 
+def test_entity_carries_public_slug_and_resolves(client):
+    body = client.get("/v1/entities", params={"module": "religion-mythology"}).json()
+    zeus = next(i for i in body["items"] if i["label"] == "Zeus")
+    assert zeus["slug"].startswith("zeus-")  # slugified label + kid suffix
+
+    resolved = client.get(f"/v1/entities/by-slug/religion-mythology/Deity/{zeus['slug']}")
+    assert resolved.status_code == 200
+    detail = resolved.json()
+    assert detail["label"] == "Zeus"
+    assert any("king of the Olympian" in c["assertion"] for c in detail["claims"])
+
+
+def test_entity_by_slug_404(client):
+    assert client.get("/v1/entities/by-slug/religion-mythology/Deity/nope-abcdef").status_code == 404
+
+
 def test_graph_neighborhood(client, db_session):
     body = client.get(f"/v1/entities/{_zeus_kid(db_session)}/graph").json()
     assert len(body["nodes"]) == 2

@@ -3,8 +3,13 @@
 from __future__ import annotations
 
 import datetime as dt
+import re
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, computed_field
+
+
+def slugify(text: str) -> str:
+    return re.sub(r"-+", "-", re.sub(r"[^a-z0-9]+", "-", text.lower())).strip("-") or "entity"
 
 
 class SourceOut(BaseModel):
@@ -44,6 +49,13 @@ class EntityOut(BaseModel):
     generator: str | None = None
     sensitivity: str
     recorded_at: dt.datetime
+
+    @computed_field
+    @property
+    def slug(self) -> str:
+        # Human-readable, durable public URL component. The 6-hex KID suffix keeps
+        # it unique within a (module, type); the opaque KID stays the real identity.
+        return f"{slugify(self.label)}-{self.id[-6:]}"
 
 
 class RelationshipOut(BaseModel):
