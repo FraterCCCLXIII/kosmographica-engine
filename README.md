@@ -11,7 +11,6 @@ graph, organized as a thin universal **core** plus pluggable **domain modules**.
 
 | Document | Purpose |
 |---|---|
-| [`docs/ARCHITECTURE_REVIEW.md`](docs/ARCHITECTURE_REVIEW.md) | Review of the original religion-KG spec against the Kosmographica mission and sibling datasets; prioritized improvements. |
 | [`docs/core-meta-model.md`](docs/core-meta-model.md) | The universal core: entity/claim/relationship model, the integral/developmental layer, the temporal layer, and federation/entity-resolution. |
 | [`docs/modules/religion-mythology.md`](docs/modules/religion-mythology.md) | The first domain module — World Religion & Mythology — conforming to the core. |
 
@@ -21,7 +20,6 @@ graph, organized as a thin universal **core** plus pluggable **domain modules**.
 kosmographica/
 ├── README.md
 └── docs/
-    ├── ARCHITECTURE_REVIEW.md        # rationale & recommendations
     ├── core-meta-model.md            # the universal core + cross-cutting layers
     └── modules/
         └── religion-mythology.md     # Religion & Mythology domain module

@@ -15,7 +15,7 @@ Version 1.2  ·  Architecture, Data Model, Navigation, Comparative Layer, Develo
 > **conforms to** the [Kosmographica Core Meta-Model](../core-meta-model.md):
 > the base entity schema below is a *profile* of the core `Entity`; the claim model is the core
 > `Claim` model; the comparative layer is unchanged; and the **integral/developmental layer**
-> (core §4) is layered on top — see §17. See also the [Architecture Review](../ARCHITECTURE_REVIEW.md).
+> (core §4) is layered on top — see §17.
 >
 > Where this document and the core meta-model differ, **the core meta-model governs** (notably:
 > claims use a canonical numeric `confidence` 0.0–1.0 with a derived band — see §15 and §11.2).

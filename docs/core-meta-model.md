@@ -4,7 +4,7 @@
 > reconciled claim model, and the federation/entity-resolution design that lets the existing
 > datasets (Mythographica, Sacred-Lineage, Kosmotheon, time-thread) compose into one graph.
 >
-> **Status:** discussion draft · **Date:** 2026-05-29 · **Companion:** [`ARCHITECTURE_REVIEW.md`](./ARCHITECTURE_REVIEW.md)
+> **Status:** discussion draft · **Date:** 2026-05-29
 
 ---
 
