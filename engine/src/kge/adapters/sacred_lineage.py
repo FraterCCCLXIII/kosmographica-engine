@@ -23,7 +23,7 @@ from __future__ import annotations
 import sqlite3
 from typing import Any
 
-from ..envelope import ClaimIn, Envelope, EntityIn, ExternalIdIn, RelationshipIn, SourceIn
+from ..envelope import ClaimIn, EntityIn, Envelope, ExternalIdIn, RelationshipIn, SourceIn
 
 MODULE = "religion-mythology"  # shared namespace so Concepts/Deities reconcile with Mythographica
 SOURCE_SYSTEM = "sacred_lineage"

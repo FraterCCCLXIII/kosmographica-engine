@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import pytest
 from sqlalchemy import create_engine, text
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.orm import sessionmaker
 
 from kge.config import settings
 from kge.models import Base

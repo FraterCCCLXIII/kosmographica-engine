@@ -1,7 +1,7 @@
 from kge.envelope import (
     ClaimIn,
-    Envelope,
     EntityIn,
+    Envelope,
     RelationshipIn,
     SourceIn,
     SupportSpan,

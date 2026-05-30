@@ -60,7 +60,7 @@ def entity_graph(
     session: Session = Depends(get_session),
     tiers: list[str] = Depends(visible_tiers),
 ):
-    entity = _get_visible_entity(session, kid, tiers)
+    _get_visible_entity(session, kid, tiers)  # 404s if the root entity isn't visible
     edges = session.scalars(
         select(Relationship).where(
             or_(Relationship.subject_id == kid, Relationship.object_id == kid),

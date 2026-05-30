@@ -1,7 +1,7 @@
 from sqlalchemy import func, select
 
 from kge.adapters import mythographica_to_envelope
-from kge.models import Claim, Entity, Relationship
+from kge.models import Entity, Relationship
 from kge.pipeline import ingest
 from kge.search import fts_match
 

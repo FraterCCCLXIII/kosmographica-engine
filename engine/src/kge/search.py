@@ -10,6 +10,7 @@ from sqlalchemy import func
 
 from .models import Entity
 
+
 # Document side of the FTS match — must mirror migration 0002's index expression.
 def entity_document():
     return func.to_tsvector(

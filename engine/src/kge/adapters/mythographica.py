@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import re
 
-from ..envelope import ClaimIn, Envelope, EntityIn, RelationshipIn, SourceIn
+from ..envelope import ClaimIn, EntityIn, Envelope, RelationshipIn, SourceIn
 
 MODULE = "religion-mythology"
 SOURCE_SYSTEM = "mythographica"

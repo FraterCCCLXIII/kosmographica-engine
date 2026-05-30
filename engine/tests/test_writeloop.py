@@ -11,13 +11,11 @@ from kge.authoring import (
 from kge.models import Claim, Entity, TrustTier, Verification
 from kge.pipeline import ingest
 from kge.verify import (
-    Verifier,
     lexical_entailment,
     publish_then_verify,
     reverify,
     spans_present,
 )
-
 
 # --- unit: verifier primitives (no DB) ---
 

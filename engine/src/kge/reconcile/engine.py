@@ -184,7 +184,7 @@ def accept(session: Session, recon_id: int) -> bool:
     if row is None or row.status == "accepted":
         return False
     row.status = "accepted"
-    row.decided_at = dt.datetime.now(dt.timezone.utc)
+    row.decided_at = dt.datetime.now(dt.UTC)
     _ensure_sameas(session, row.left_kid, row.right_kid)
     session.flush()
     return True
@@ -197,7 +197,7 @@ def reject(session: Session, recon_id: int, reason: str | None = None) -> bool:
     row.status = "rejected"
     if reason:
         row.reason = reason
-    row.decided_at = dt.datetime.now(dt.timezone.utc)
+    row.decided_at = dt.datetime.now(dt.UTC)
     session.flush()
     return True
 

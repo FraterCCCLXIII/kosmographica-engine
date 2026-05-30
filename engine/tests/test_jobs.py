@@ -33,7 +33,7 @@ def test_reverify_job_reports_delta(db_session):
 
 
 def test_reverify_threshold_change_decays_tier(db_session):
-    result = _seed_grounded(db_session, batch_id="b2")
+    _seed_grounded(db_session, batch_id="b2")
     db_session.flush()
     accepted_before = db_session.scalar(
         select(func.count()).select_from(Claim).where(

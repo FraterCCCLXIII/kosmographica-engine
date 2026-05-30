@@ -1,0 +1,78 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  engine:
+    name: Engine (lint · migrate · test)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: engine
+    env:
+      # Point the engine at the CI Postgres service (pgvector image, default port).
+      KGE_DATABASE_URL: postgresql+psycopg://kosmo:kosmo@localhost:5432/kosmographica
+      # CI runs the deterministic, offline LLM client — no secrets required.
+      KGE_LLM_PROVIDER: fake
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: kosmo
+          POSTGRES_PASSWORD: kosmo
+          POSTGRES_DB: kosmographica
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U kosmo"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Sync dependencies
+        run: uv sync --dev
+
+      - name: Lint (ruff)
+        run: uv run ruff check src tests
+
+      - name: Migrations apply cleanly
+        run: uv run alembic upgrade head
+
+      - name: Tests
+        run: uv run pytest -q
+
+  web:
+    name: Console (lint · typecheck)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npx tsc --noEmit

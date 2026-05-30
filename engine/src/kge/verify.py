@@ -16,7 +16,7 @@ scorer is a deterministic lexical-overlap baseline; an LLM/NLI model drops in be
 from __future__ import annotations
 
 from collections.abc import Callable
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session

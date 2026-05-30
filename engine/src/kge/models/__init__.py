@@ -4,9 +4,9 @@ from .base import Base, ProvenanceMixin
 from .claim import Claim
 from .entity import Entity
 from .enums import (
+    TIER_RANK,
     AboutKind,
     Sensitivity,
-    TIER_RANK,
     TrustTier,
     tier_at_least,
     tiers_at_least,
