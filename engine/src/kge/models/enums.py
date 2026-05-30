@@ -32,6 +32,12 @@ def tier_at_least(tier: str, minimum: str) -> bool:
     return TIER_RANK.get(tier, -1) >= TIER_RANK.get(minimum, 99)
 
 
+def tiers_at_least(minimum: str) -> list[str]:
+    """Tier strings ranked at or above ``minimum`` (for SQL ``IN`` filters)."""
+    floor = TIER_RANK.get(minimum, 0)
+    return [str(t) for t, rank in TIER_RANK.items() if rank >= floor]
+
+
 class Sensitivity(StrEnum):
     """Data-sovereignty sensitivity (governance/ethics-and-sovereignty.md)."""
 

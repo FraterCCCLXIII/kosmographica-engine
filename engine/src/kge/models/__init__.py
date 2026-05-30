@@ -3,7 +3,14 @@
 from .base import Base, ProvenanceMixin
 from .claim import Claim
 from .entity import Entity
-from .enums import AboutKind, Sensitivity, TIER_RANK, TrustTier, tier_at_least
+from .enums import (
+    AboutKind,
+    Sensitivity,
+    TIER_RANK,
+    TrustTier,
+    tier_at_least,
+    tiers_at_least,
+)
 from .external_id import ExternalId
 from .relationship import Relationship
 from .source import Source, claim_sources
@@ -20,6 +27,7 @@ __all__ = [
     "TrustTier",
     "TIER_RANK",
     "tier_at_least",
+    "tiers_at_least",
     "Sensitivity",
     "AboutKind",
 ]
