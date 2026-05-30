@@ -5,7 +5,7 @@ from sqlalchemy import select
 from kge.adapters import mythographica_to_envelope
 from kge.api.app import app
 from kge.api.deps import get_session
-from kge.models import Entity, TrustTier
+from kge.models import Claim, Entity, TrustTier
 from kge.pipeline import ingest
 
 
@@ -108,6 +108,14 @@ def test_graph_neighborhood(client, db_session):
     assert len(body["nodes"]) == 2
     assert len(body["edges"]) == 1
     assert body["edges"][0]["predicate"] == "consort"
+
+
+def test_disputes_endpoint(client, db_session):
+    assert client.get("/v1/audit/disputes").json()["total"] == 0
+    claim = db_session.scalar(select(Claim))
+    claim.disputed = True
+    db_session.flush()
+    assert client.get("/v1/audit/disputes").json()["total"] == 1
 
 
 def test_audit_claim_detail_shows_verifications(client, db_session):

@@ -1,0 +1,58 @@
+@import "tailwindcss";
+
+/*
+ * Kosmographica Audit Console design tokens.
+ * All UI colors reference these tokens (no hardcoded values in components) so the
+ * console stays themeable. See ../../docs/frontend/design-system.md.
+ */
+:root {
+  --background: #f8fafc;
+  --surface: #ffffff;
+  --foreground: #0f172a;
+  --muted: #64748b;
+  --border: #e2e8f0;
+  --accent: #4f46e5;
+
+  /* Trust tiers (ADR-013) */
+  --tier-unverified: #b45309; /* amber  — hidden from public, shown in audit */
+  --tier-validated: #2563eb; /* blue   — AI-validated, public-but-badged */
+  --tier-reviewed: #059669; /* green  — human reviewed */
+  --tier-expert: #047857; /* emerald — expert endorsed */
+
+  --disputed: #dc2626;
+  --confidence-track: #e2e8f0;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0b1120;
+    --surface: #111827;
+    --foreground: #e5e7eb;
+    --muted: #94a3b8;
+    --border: #1f2937;
+    --accent: #818cf8;
+    --confidence-track: #1f2937;
+  }
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-accent: var(--accent);
+  --color-tier-unverified: var(--tier-unverified);
+  --color-tier-validated: var(--tier-validated);
+  --color-tier-reviewed: var(--tier-reviewed);
+  --color-tier-expert: var(--tier-expert);
+  --color-disputed: var(--disputed);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), system-ui, sans-serif;
+}

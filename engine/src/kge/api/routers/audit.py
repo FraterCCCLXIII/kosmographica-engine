@@ -75,16 +75,16 @@ def _attach_labels(session: Session, claims: list[Claim]) -> list[ClaimAuditOut]
     return out
 
 
-@router.get("/claims", response_model=Page)
-def list_claims(
-    session: Session = Depends(get_session),
-    tier: str | None = Query(None, description="Exact tier, e.g. machine_validated (the queue)"),
+def _query_claims(
+    session: Session,
+    *,
+    tier: str | None = None,
     generator: str | None = None,
     batch_id: str | None = None,
     disputed: bool | None = None,
-    limit: int = Query(50, le=200),
+    limit: int = 50,
     offset: int = 0,
-):
+) -> Page:
     where = []
     if tier:
         where.append(Claim.tier == tier)
@@ -102,13 +102,34 @@ def list_claims(
     return Page(items=_attach_labels(session, claims), total=total or 0, limit=limit, offset=offset)
 
 
+@router.get("/claims", response_model=Page)
+def list_claims(
+    session: Session = Depends(get_session),
+    tier: str | None = Query(None, description="Exact tier, e.g. machine_validated (the queue)"),
+    generator: str | None = None,
+    batch_id: str | None = None,
+    disputed: bool | None = None,
+    limit: int = Query(50, le=200),
+    offset: int = 0,
+):
+    return _query_claims(
+        session,
+        tier=tier,
+        generator=generator,
+        batch_id=batch_id,
+        disputed=disputed,
+        limit=limit,
+        offset=offset,
+    )
+
+
 @router.get("/disputes", response_model=Page)
 def list_disputes(
     session: Session = Depends(get_session),
     limit: int = Query(50, le=200),
     offset: int = 0,
 ):
-    return list_claims(session=session, disputed=True, limit=limit, offset=offset)
+    return _query_claims(session, disputed=True, limit=limit, offset=offset)
 
 
 @router.get("/claims/{kid:path}", response_model=ClaimAuditOut)
