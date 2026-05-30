@@ -12,6 +12,7 @@ from .enums import (
     tiers_at_least,
 )
 from .external_id import ExternalId
+from .reconciliation import Reconciliation
 from .relationship import Relationship
 from .source import Source, claim_sources
 from .verification import Verification
@@ -25,6 +26,7 @@ __all__ = [
     "Source",
     "claim_sources",
     "ExternalId",
+    "Reconciliation",
     "Verification",
     "TrustTier",
     "TIER_RANK",

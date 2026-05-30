@@ -98,3 +98,43 @@ export interface Page<T> {
   limit: number;
   offset: number;
 }
+
+export interface ReconEntityOut {
+  id: string;
+  label: string;
+  type: string;
+  source_system: string | null;
+  valid_from: number | null;
+  valid_to: number | null;
+}
+
+export interface ReconciliationOut {
+  id: number;
+  left_kid: string;
+  right_kid: string;
+  left_source: string | null;
+  right_source: string | null;
+  match_method: "deterministic" | "scored" | "manual";
+  score: number;
+  status: "proposed" | "accepted" | "rejected";
+  reason: string | null;
+  created_at: string;
+  decided_at: string | null;
+  left: ReconEntityOut | null;
+  right: ReconEntityOut | null;
+}
+
+export interface ReconciliationStats {
+  by_status: Record<string, number>;
+  by_method: Record<string, number>;
+  total: number;
+}
+
+export interface SourceParityOut {
+  source_system: string;
+  entities: number;
+  relationships: number;
+  claims: number;
+  entities_missing_external_id: number;
+  converged: boolean;
+}

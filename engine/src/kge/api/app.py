@@ -5,7 +5,7 @@ from __future__ import annotations
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .routers import audit, entities, search
+from .routers import audit, entities, reconcile, search
 
 
 def create_app() -> FastAPI:
@@ -14,10 +14,10 @@ def create_app() -> FastAPI:
         version="0.1.0",
         summary="Read + audit surface over the canonical claim graph.",
     )
-    # The read-only Audit Console (web/) is a separate origin in dev.
+    # The read-only Audit Console (web/) is a separate origin in dev (port varies).
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["http://localhost:3000"],
+        allow_origin_regex=r"http://localhost:\d+",
         allow_methods=["GET"],
         allow_headers=["*"],
     )
@@ -29,6 +29,7 @@ def create_app() -> FastAPI:
     app.include_router(entities.router)
     app.include_router(search.router)
     app.include_router(audit.router)
+    app.include_router(reconcile.router)
     return app
 
 

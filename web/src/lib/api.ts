@@ -7,7 +7,10 @@ import type {
   EntityDetailOut,
   GraphOut,
   Page,
+  ReconciliationOut,
+  ReconciliationStats,
   SearchHitOut,
+  SourceParityOut,
 } from "./types";
 
 const BASE = process.env.KGE_API_URL ?? "http://localhost:8000";
@@ -58,6 +61,13 @@ export const api = {
   disputes: (limit = 50) => apiGet<Page<ClaimAuditOut>>("/v1/audit/disputes", { limit }),
 
   claim: (kid: string) => apiGet<ClaimAuditOut>(`/v1/audit/claims/${kidPath(kid)}`),
+
+  reconciliationStats: () => apiGet<ReconciliationStats>("/v1/reconcile/stats"),
+
+  reconciliationProposals: (status = "proposed", limit = 100) =>
+    apiGet<Page<ReconciliationOut>>("/v1/reconcile/proposals", { status, limit }),
+
+  parity: () => apiGet<SourceParityOut[]>("/v1/reconcile/parity"),
 };
 
 export { ApiError };

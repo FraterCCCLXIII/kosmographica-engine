@@ -14,12 +14,19 @@ import sys
 
 from sqlalchemy import func, select
 
-from .adapters import mythographica_to_envelope
+from .adapters import load_sqlite, mythographica_to_envelope, sacred_lineage_to_envelope
 from .db import session_scope
 from .models import Claim, Entity, Relationship, Source
 from .pipeline import ingest
 
-_ADAPTERS = {"mythographica": mythographica_to_envelope}
+_ADAPTERS = {"mythographica": mythographica_to_envelope, "sacred_lineage": sacred_lineage_to_envelope}
+
+
+def _load_input(source: str, path: str):
+    """Sacred-Lineage seeds from a SQLite DB; others from a JSON graph."""
+    if source == "sacred_lineage":
+        return load_sqlite(path)
+    return json.loads(open(path, encoding="utf-8").read())
 
 
 def _cmd_seed(args: argparse.Namespace) -> int:
@@ -27,8 +34,8 @@ def _cmd_seed(args: argparse.Namespace) -> int:
     if adapter is None:
         print(f"unknown source {args.source!r}; known: {sorted(_ADAPTERS)}", file=sys.stderr)
         return 2
-    graph = json.loads(open(args.path, encoding="utf-8").read())
-    env = adapter(graph, batch_id=args.batch_id)
+    data = _load_input(args.source, args.path)
+    env = adapter(data, batch_id=args.batch_id)
     with session_scope() as session:
         result = ingest(session, env)
         if result.quarantined:
@@ -52,6 +59,34 @@ def _cmd_stats(_: argparse.Namespace) -> int:
             select(Entity.tier, func.count()).group_by(Entity.tier)
         ).all():
             print(f"  {tier}: {count}")
+    return 0
+
+
+def _cmd_reconcile(args: argparse.Namespace) -> int:
+    from .reconcile import accept, propose_matches, reconciliation_stats, reject
+
+    with session_scope() as session:
+        if args.action == "propose":
+            summary = propose_matches(session, name_threshold=args.threshold)
+            print(json.dumps(summary.as_dict(), indent=2))
+        elif args.action == "accept":
+            ok = accept(session, args.id)
+            print("accepted" if ok else "no-op (missing or already accepted)")
+            return 0 if ok else 1
+        elif args.action == "reject":
+            ok = reject(session, args.id, args.reason)
+            print("rejected" if ok else "no-op (missing or already rejected)")
+            return 0 if ok else 1
+        elif args.action == "stats":
+            print(json.dumps(reconciliation_stats(session), indent=2))
+    return 0
+
+
+def _cmd_parity(args: argparse.Namespace) -> int:
+    from .reconcile import source_parity
+
+    with session_scope() as session:
+        print(json.dumps(source_parity(session, args.source), indent=2))
     return 0
 
 
@@ -83,6 +118,17 @@ def main(argv: list[str] | None = None) -> int:
     ev = sub.add_parser("eval", help="evaluate the verifier against the gold set")
     ev.add_argument("--gold", default=None, help="path to a gold JSONL file")
     ev.set_defaults(func=_cmd_eval)
+
+    rec = sub.add_parser("reconcile", help="cross-source entity resolution (sameAs)")
+    rec.add_argument("action", choices=["propose", "accept", "reject", "stats"])
+    rec.add_argument("id", nargs="?", type=int, help="reconciliation id (accept/reject)")
+    rec.add_argument("--reason", default=None, help="rejection reason")
+    rec.add_argument("--threshold", type=float, default=0.6, help="name-match score threshold")
+    rec.set_defaults(func=_cmd_reconcile)
+
+    par = sub.add_parser("parity", help="source convergence/parity check")
+    par.add_argument("source", help="source_system, e.g. sacred_lineage")
+    par.set_defaults(func=_cmd_parity)
 
     args = parser.parse_args(argv)
     return args.func(args)

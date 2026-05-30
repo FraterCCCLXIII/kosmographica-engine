@@ -94,6 +94,50 @@ class SearchHitOut(BaseModel):
     rank: float
 
 
+class ReconEntityOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: str
+    label: str
+    type: str
+    source_system: str | None = None
+    valid_from: int | None = None
+    valid_to: int | None = None
+
+
+class ReconciliationOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    left_kid: str
+    right_kid: str
+    left_source: str | None = None
+    right_source: str | None = None
+    match_method: str
+    score: float
+    status: str
+    reason: str | None = None
+    created_at: dt.datetime
+    decided_at: dt.datetime | None = None
+    left: ReconEntityOut | None = None
+    right: ReconEntityOut | None = None
+
+
+class ReconciliationStats(BaseModel):
+    by_status: dict[str, int]
+    by_method: dict[str, int]
+    total: int
+
+
+class SourceParityOut(BaseModel):
+    """Consistency (not completeness) check for one converged source."""
+
+    source_system: str
+    entities: int
+    relationships: int
+    claims: int
+    entities_missing_external_id: int
+    converged: bool
+
+
 class Page(BaseModel):
     items: list
     total: int

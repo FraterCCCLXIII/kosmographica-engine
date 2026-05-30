@@ -22,5 +22,8 @@ class ExternalId(Base):
     value: Mapped[str] = mapped_column(String(256), index=True)
 
     __table_args__ = (
-        UniqueConstraint("authority", "value", name="uq_external_authority_value"),
+        # An external authority id may be claimed by entities from multiple sources —
+        # that shared (authority, value) is the deterministic sameAs signal the
+        # reconciler reads. Uniqueness is therefore per-KID, not global.
+        UniqueConstraint("kid", "authority", "value", name="uq_external_kid_authority_value"),
     )
