@@ -1,17 +1,34 @@
 **WORLD RELIGION & MYTHOLOGY**
 
-**KNOWLEDGE GRAPH DATABASE**
+**KOSMOGRAPHICA — RELIGION & MYTHOLOGY DOMAIN MODULE**
 
 Specification & Implementation Document
 
-Version 1.1  ·  Architecture, Data Model, Navigation, Comparative Layer & RAG Design
+Version 1.2  ·  Architecture, Data Model, Navigation, Comparative Layer, Developmental Layer & RAG Design
 
-| Designed for: Human browsing · AI training & RAG retrieval · Graph-based relationship mapping Cultural heritage archiving · Comparative religion scholarship |
+| Designed for: Human browsing · AI training & RAG retrieval · Graph-based relationship mapping · Cultural heritage archiving · Comparative religion scholarship |
 | --- |
+
+> **Module conformance.** This document specifies the **Religion & Mythology domain module** of
+> Kosmographica — the first and best-developed module of a larger system whose mission is a total
+> record of human thought, culture, and development through an integral developmental lens. It
+> **conforms to** the [Kosmographica Core Meta-Model](./docs/kosmographica-core-meta-model.md):
+> the base entity schema below is a *profile* of the core `Entity`; the claim model is the core
+> `Claim` model; the comparative layer is unchanged; and the **integral/developmental layer**
+> (core §4) is layered on top — see §17. See also the [Architecture Review](./docs/ARCHITECTURE_REVIEW.md).
+>
+> Where this document and the core meta-model differ, **the core meta-model governs** (notably:
+> claims use a canonical numeric `confidence` 0.0–1.0 with a derived band — see §15 and §11.2).
 
 # 1. Vision & Core Principles
 
-This document specifies the architecture, data model, navigation design, and implementation plan for a comprehensive civilizational knowledge graph covering world religions, mythologies, spiritual traditions, sacred texts, figures, deities, practices, and their relationships across all of human history.
+This document specifies the architecture, data model, navigation design, and implementation plan for
+the Religion & Mythology module of Kosmographica — a comprehensive civilizational knowledge graph
+covering world religions, mythologies, spiritual traditions, sacred texts, figures, deities,
+practices, and their relationships across all of human history. As a Kosmographica module it shares
+the universal core, the federation layer, and the cross-cutting claim, comparative, developmental,
+temporal, and media layers with the system's other domains (Philosophy & Science, Art & Culture,
+Polity & Society, Technology).
 
 ## 1.1 Design Philosophy
 
@@ -36,10 +53,12 @@ This document specifies the architecture, data model, navigation design, and imp
 The system aligns with established linked-data and cultural-heritage standards:
 
 - **Wikidata model:** Statements with qualifiers, references, and confidence ranks — the exact pattern needed for disputed religious history
-- **SKOS:** Taxonomies, thesauri, and subject-heading structures for controlled vocabularies
+- **SKOS:** Taxonomies, thesauri, and subject-heading structures for controlled vocabularies. The Kosmographica controlled vocabulary is built **fresh**, anchored on the Mythographica tradition/relation taxonomy and its epistemic methodology rules — external glossaries are treated as unverified leads, not load sources (see core meta-model §8)
 - **CIDOC CRM:** Cultural-historical data integration for complex entity relationships
 - **IIIF:** Interoperable delivery and presentation of cultural heritage images
 - **RDF / JSON-LD:** Linked-data export for external scholarly and AI consumption
+- **CARE Principles & Traditional Knowledge (TK) Labels:** Data-sovereignty and cultural-sensitivity framework for indigenous and living traditions, with sacred/restricted-content flags and access controls
+- **External identifier authorities:** Wikidata, VIAF (persons), GeoNames & Pleiades (places, incl. ancient), Getty AAT/ULAN (art & iconography), PeriodO (historical periods), CTS URNs (classical texts)
 
 # 2. Complete Entity Ontology
 
@@ -126,6 +145,12 @@ The ontology consists of 26 top-level entity types. Every entity is a node; all 
 | Collection / Archive | Libraries, museum collections, manuscript repositories |
 
 # 3. Core Data Model
+
+> This module's data model is a **profile of the Kosmographica universal core** (core meta-model §2–§3).
+> The base entity schema below maps onto the core `Entity`; `relationships`, `claims`, and
+> `comparative_edges` are the core cross-cutting layers; and every node also carries a `module`
+> (`religion_mythology`), a `source_system`, `external_ids`, and a `developmental` annotation set
+> (§17). Confidence is canonically numeric (0.0–1.0) with a derived band — see §15.2.
 
 ## 3.1 Universal Entity Schema
 
@@ -278,6 +303,7 @@ Navigation is organized into three zones: Explore (browsing), Research (scholars
 | Lineage Builder | Visualize and trace lineage chains |
 | Comparison View | Side-by-side entity and concept comparison |
 | Comparative Mapping Engine | Deity/symbol/concept equivalence explorer with typed edges |
+| Developmental Lens | View entities, traditions, and concepts by altitude/state across frameworks (§17) |
 | AI Query / RAG Chat | Natural language retrieval over the corpus |
 | Timeline Explorer | Filter and explore across time |
 | Citation Browser | Source and provenance explorer |
@@ -300,10 +326,11 @@ All entity pages share a consistent layout. Sections that have no content for a 
 | 10. Symbols & Objects: Associated material and visual culture |
 | 11. Claims & Disputes: All claims with confidence and sources visible |
 | 12. Comparative Relationships: Typed cross-entity equivalences, parallels, and oppositions with full edge metadata |
-| 13. Images & Media: IIIF-compatible image gallery |
-| 14. AI Summary: Pre-generated RAG-optimized summary |
-| 15. Related Entities: Similar/connected entities |
-| 16. Sources: Full citation list |
+| 13. Developmental Readings: Altitude / state / quadrant annotations across frameworks, each attributed (see §17) |
+| 14. Images & Media: IIIF-compatible image gallery |
+| 15. AI Summary: Pre-generated RAG-optimized summary |
+| 16. Related Entities: Similar/connected entities |
+| 17. Sources: Full citation list |
 
 # 5. Places: Sacred Geography & Mythic Space
 
@@ -580,6 +607,12 @@ Motifs are recurring narrative patterns that appear across geographically and hi
 ## 11.2 Confidence & Provenance System
 
 Every data point carries explicit provenance. The system never silently asserts a fact.
+
+> **Canonical encoding.** Confidence is stored as a numeric `confidence` ∈ [0.0, 1.0] (the Mythographica
+> assertion convention) with the qualitative band below **derived** from it
+> (`≥0.8 high · 0.55–0.79 medium · 0.3–0.54 low · <0.3 speculative`). `tradition_specific` and
+> `contested` are orthogonal flags derived from `claim_type` / `is_disputed`, not from the score. See
+> core meta-model §3.2 for the full reconciliation table.
 
 | Confidence Level | Meaning | Example |
 | --- | --- | --- |
@@ -958,3 +991,68 @@ A knowledge graph of this scope requires a serious, structured editorial workflo
 | and to give AI and human researchers the metadata to navigate that landscape accurately. |
 |  |
 | A disputed claim, properly attributed, is more valuable than a false certainty. |
+
+# 17. Integral / Developmental Layer
+
+This is the layer that makes Kosmographica more than a comparative-religion encyclopedia. The full
+schema is defined once, for all modules, in the [Core Meta-Model §4](./docs/kosmographica-core-meta-model.md#4-developmental-integral-layer);
+this section gives the Religion & Mythology module's usage. The developmental layer lets any
+entity, claim, text, practice, figure, or movement be read through a developmental framework — and,
+critically, **every such reading is itself a claim** (interpretive and contestable), carrying
+`confidence`, `asserted_by`, and `sources`. The system never asserts an altitude as a fact.
+
+## 17.1 What the layer adds
+
+- **`DevelopmentalFramework`** — AQAL, Spiral Dynamics, Gebser's structures of consciousness,
+  Fowler's stages of faith, Kohlberg, etc. (Authors link to `Historical Figure` entities.)
+- **`DevelopmentalStage` / Altitude** — stages within a framework, each mapped to a shared
+  cross-framework `altitude` key (archaic · magic · mythic · rational · pluralistic · integral · …)
+  so traditions and figures can be compared *across* frameworks. Cross-framework equivalences are
+  comparative claims, never identity.
+- **`DevelopmentalAnnotation`** — attachable to any entity or claim, carrying `framework_id`,
+  `stage_id` (vertical structure-stage), `state` (gross/subtle/causal/nondual), `quadrant`
+  (AQAL interior/exterior × individual/collective), and `line` (cognitive, moral, spiritual,
+  aesthetic, …).
+
+## 17.2 State × Stage (Wilber–Combs) is kept distinct
+
+The module enforces the Wilber–Combs distinction: a mystical **state** (the spec's `Experience State`
+entity — samādhi, satori, mystical union) can be accessed at any developmental **stage**, but is
+*interpreted* through that stage's structure. The two axes are modeled separately:
+
+| EXAMPLE: SAME STATE, DIFFERENT STAGE-INTERPRETATIONS |
+| --- |
+| Experience State: mystical union (a subtle/causal state) |
+| · interpreted at a mythic-membership stage → "union with a personal God of my tradition" |
+| · interpreted at a rational stage → "an altered brain state / psychological peak experience" |
+| · interpreted at a pluralistic stage → "a universal spiritual experience common to all faiths" |
+| · interpreted at an integral stage → "non-dual awareness that includes and transcends prior framings" |
+|  |
+| Each row is a separate DevelopmentalAnnotation claim with its own asserted_by + confidence. |
+
+## 17.3 Module usage notes
+
+- **Traditions and concepts** may carry multiple developmental readings (e.g. a single tradition read
+  as predominantly mythic by one interpreter and as having an integral contemplative core by another).
+  Surface all readings; never collapse to one.
+- **Concept interpretations** (§3.4) and developmental annotations compose: the same concept
+  (reincarnation, grace) can be tagged with both a tradition-specific interpretation and an altitude.
+- **AI / RAG** uses the layer to present *multiple developmental readings* and, where appropriate, to
+  meet a questioner at their altitude — always attributing each reading, never asserting one as truth.
+- **Provenance discipline** is identical to the Claim layer: a developmental reading without an
+  `asserted_by` interpreter/school and a source is a draft, not a publishable annotation.
+
+# 18. Federation & Source Systems
+
+As a Kosmographica module, Religion & Mythology data federates with sibling source systems rather
+than living in a silo (see [Core Meta-Model §6](./docs/kosmographica-core-meta-model.md#6-federation--entity-resolution)).
+
+- Every record carries a `source_system` and keeps its native key; a canonical Kosmographica ID
+  (KID) is the join target, with `sameAs` reconciliation mapping native IDs (e.g. Mythographica
+  `norse_odin`, a Sacred-Lineage `Figure`, a time-thread event, Wikidata `Q…`) to one entity.
+- The claim/assertion model here is the **same** model implemented in Mythographica (numeric
+  confidence, methodology, sources) — not a parallel one.
+- Lineage transmission chains integrate the Sacred-Lineage (Kechimyaku) schema; the historical
+  chronology integrates the time-thread timeline; the developmental frameworks integrate Kosmotheon.
+- Ingestion **orchestrates** the existing loaders (Mythographica `seed_from_json.py`, Sacred-Lineage
+  `db:import-legacy`) rather than replacing them.
