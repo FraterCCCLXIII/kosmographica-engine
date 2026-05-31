@@ -4,6 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useSyncExternalStore, type ReactNode } from "react";
 import { SearchBox } from "@/components/SearchBox";
+import { NavBrowseTree } from "@/components/NavBrowseTree";
+import type { BrowseCatalog } from "@/lib/browse-catalog";
 
 const STORAGE_KEY = "kg-nav-open";
 const NAV_EVENT = "kg-nav-open-change";
@@ -27,17 +29,17 @@ function subscribeOpen(callback: () => void): () => void {
 
 type NavLink = { href: string; label: string; hint?: string };
 
-const PRIMARY: NavLink[] = [
-  { href: "/", label: "Start", hint: "Search the encyclopedia" },
-  { href: "/browse", label: "Browse", hint: "All entities by type" },
-  { href: "/search", label: "Search", hint: "Full-text search" },
-];
-
 const SECONDARY: NavLink[] = [
   { href: "/about", label: "How this works", hint: "Publish-then-verify" },
 ];
 
-export function NavShell({ children }: { children: ReactNode }) {
+export function NavShell({
+  children,
+  browseCatalog,
+}: {
+  children: ReactNode;
+  browseCatalog: BrowseCatalog;
+}) {
   const pathname = usePathname();
   // Docked-open by default on desktop (Sacred-Lineage behaviour); persisted.
   const open = useSyncExternalStore(subscribeOpen, readOpen, () => true);
@@ -62,8 +64,8 @@ export function NavShell({ children }: { children: ReactNode }) {
       <header
         className={
           isStart
-            ? "absolute left-0 top-0 z-30 p-2"
-            : "relative z-30 flex shrink-0 items-center border-b border-border bg-canvas/85 py-2.5 pl-2 pr-3 backdrop-blur sm:pr-4"
+            ? "absolute left-0 top-0 z-30 flex h-[var(--site-header-height)] items-center p-2"
+            : "relative z-30 flex h-[var(--site-header-height)] shrink-0 items-center border-b border-border bg-canvas/85 py-2.5 pl-2 pr-3 backdrop-blur sm:pr-4"
         }
       >
         <div className="flex min-w-0 items-center gap-1.5">
@@ -112,8 +114,12 @@ export function NavShell({ children }: { children: ReactNode }) {
             open ? "w-72 border-r" : "w-0 border-r-0"
           }`}
         >
-          <div className="flex h-full w-72 min-h-0 flex-col overflow-y-auto">
-            <NavPanel pathname={pathname} />
+          <div
+            className={`site-nav-scroll flex h-full w-72 min-h-0 flex-col overflow-y-auto ${
+              isStart ? "pt-[var(--site-header-height)]" : ""
+            }`}
+          >
+            <NavPanel pathname={pathname} browseCatalog={browseCatalog} />
           </div>
         </aside>
 
@@ -156,8 +162,8 @@ export function NavShell({ children }: { children: ReactNode }) {
               </svg>
             </button>
           </div>
-          <div className="flex-1 overflow-y-auto">
-            <NavPanel pathname={pathname} onNavigate={close} />
+          <div className="site-nav-scroll flex-1 overflow-y-auto">
+            <NavPanel pathname={pathname} browseCatalog={browseCatalog} onNavigate={close} />
           </div>
         </aside>
       </div>
@@ -165,10 +171,19 @@ export function NavShell({ children }: { children: ReactNode }) {
   );
 }
 
-function NavPanel({ pathname, onNavigate }: { pathname: string; onNavigate?: () => void }) {
+function NavPanel({
+  pathname,
+  browseCatalog,
+  onNavigate,
+}: {
+  pathname: string;
+  browseCatalog: BrowseCatalog;
+  onNavigate?: () => void;
+}) {
   return (
     <nav className="px-3 py-4">
-      <NavSection links={PRIMARY} pathname={pathname} onNavigate={onNavigate} />
+      <p className="mb-2 px-2.5 text-xs font-medium uppercase tracking-wide text-muted">Browse</p>
+      <NavBrowseTree catalog={browseCatalog} onNavigate={onNavigate} />
       <div className="my-4 border-t border-border" />
       <NavSection links={SECONDARY} pathname={pathname} onNavigate={onNavigate} />
     </nav>

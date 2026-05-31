@@ -6,6 +6,7 @@ import type {
   EntityDetailOut,
   EntityOut,
   GraphOut,
+  LineageOut,
   Page,
   SearchHitOut,
 } from "./types";
@@ -44,6 +45,8 @@ export const api = {
     ),
 
   graph: (kid: string) => apiGet<GraphOut>(`/v1/entities/${kid}/graph`),
+
+  lineage: (kid: string) => apiGet<LineageOut>(`/v1/entities/${kid}/lineage`),
 
   search: (q: string) => apiGet<SearchHitOut[]>("/v1/search", { q }),
 };

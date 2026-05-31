@@ -77,6 +77,19 @@ class GraphOut(BaseModel):
     edges: list[RelationshipOut]
 
 
+class LineageNodeOut(BaseModel):
+    entity: EntityOut
+    predicate: str | None = None
+    children: list[LineageNodeOut] = []
+
+
+class LineageOut(BaseModel):
+    chart: EntityOut
+    roots: list[LineageNodeOut]
+    unlinked: list[EntityOut] = []
+    transmission_count: int = 0
+
+
 class VerificationOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     verifier: str

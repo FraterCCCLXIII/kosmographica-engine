@@ -67,6 +67,19 @@ export interface GraphOut {
   edges: RelationshipOut[];
 }
 
+export interface LineageNodeOut {
+  entity: EntityOut;
+  predicate: string | null;
+  children: LineageNodeOut[];
+}
+
+export interface LineageOut {
+  chart: EntityOut;
+  roots: LineageNodeOut[];
+  unlinked: EntityOut[];
+  transmission_count: number;
+}
+
 export interface SearchHitOut {
   entity: EntityOut;
   rank: number;

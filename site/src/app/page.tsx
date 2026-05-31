@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { api, ApiError } from "@/lib/api";
+import { apiTypeToSlug, browseHref } from "@/lib/browse-catalog";
 import { EntityCard } from "@/components/EntityCard";
 import { SearchBox } from "@/components/SearchBox";
 import type { EntityOut } from "@/lib/types";
@@ -51,15 +52,18 @@ export default async function StartPage() {
 
         {topTypes.length > 0 && (
           <div className="mt-6 flex flex-wrap justify-center gap-2">
-            {topTypes.map(({ type }) => (
-              <Link
-                key={type}
-                href="/browse"
-                className="rounded-full border border-border px-3 py-1 text-xs text-muted transition-colors hover:border-accent hover:text-ink"
-              >
-                {type}
-              </Link>
-            ))}
+            {topTypes.map(({ type }) => {
+              const slug = apiTypeToSlug(type);
+              return (
+                <Link
+                  key={type}
+                  href={slug ? browseHref(slug) : "/browse"}
+                  className="rounded-full border border-border px-3 py-1 text-xs text-muted transition-colors hover:border-accent hover:text-ink"
+                >
+                  {type}
+                </Link>
+              );
+            })}
           </div>
         )}
       </section>

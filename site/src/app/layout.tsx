@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Spectral, Inter } from "next/font/google";
 import "./globals.css";
 import { NavShell } from "@/components/NavShell";
+import { loadBrowseCatalog } from "@/lib/browse-catalog";
 
 const display = Spectral({
   variable: "--font-display",
@@ -19,14 +20,16 @@ export const metadata: Metadata = {
     "A federated, source-grounded encyclopedia of religion, mythology, and human thought. Every claim is cited and trust-rated.",
 };
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  const browseCatalog = await loadBrowseCatalog();
+
   return (
     <html
       lang="en"
       className={`${display.variable} ${sans.variable} h-full antialiased`}
     >
       <body className="h-full">
-        <NavShell>{children}</NavShell>
+        <NavShell browseCatalog={browseCatalog}>{children}</NavShell>
       </body>
     </html>
   );

@@ -6,6 +6,12 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
+from ...lineage import (
+    LINEAGE_VIEW_TYPES,
+    load_lineage_out,
+    pick_lineage_chart,
+    resolve_lineage_charts,
+)
 from ...models import Claim, Entity, Relationship
 from ..deps import PUBLIC_SENSITIVITIES, get_session, visible_tiers
 from ..schemas import (
@@ -13,6 +19,7 @@ from ..schemas import (
     EntityDetailOut,
     EntityOut,
     GraphOut,
+    LineageOut,
     Page,
     RelationshipOut,
 )
@@ -76,6 +83,28 @@ def get_entity_by_slug(
     if entity is None:
         raise HTTPException(status_code=404, detail="entity not found")
     return _entity_detail(session, entity, tiers)
+
+
+@router.get("/{kid:path}/lineage", response_model=LineageOut)
+def entity_lineage(
+    kid: str,
+    session: Session = Depends(get_session),
+    tiers: list[str] = Depends(visible_tiers),
+):
+    entity = _get_visible_entity(session, kid, tiers)
+    if entity.type not in LINEAGE_VIEW_TYPES:
+        raise HTTPException(status_code=404, detail="entity type has no lineage view")
+
+    charts = resolve_lineage_charts(
+        session, entity, tiers=tiers, public_sensitivities=PUBLIC_SENSITIVITIES
+    )
+    chart = pick_lineage_chart(session, charts, tiers=tiers)
+    if chart is None:
+        raise HTTPException(status_code=404, detail="no lineage chart for entity")
+
+    return load_lineage_out(
+        session, chart, tiers=tiers, public_sensitivities=PUBLIC_SENSITIVITIES
+    )
 
 
 @router.get("/{kid:path}/graph", response_model=GraphOut)

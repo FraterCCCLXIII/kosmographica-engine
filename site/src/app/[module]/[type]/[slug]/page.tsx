@@ -4,17 +4,29 @@ import type { Metadata } from "next";
 import { ApiError, api } from "@/lib/api";
 import { lifespan, TIER_META } from "@/lib/format";
 import { entityHref } from "@/lib/types";
-import type { EntityDetailOut, GraphOut } from "@/lib/types";
+import { hasLineageView } from "@/lib/lineage";
+import type { EntityDetailOut, GraphOut, LineageOut } from "@/lib/types";
 import { ConfidenceBar, DisputedBadge, TrustBadge } from "@/components/Badges";
 import { ClaimSources } from "@/components/ClaimSources";
 import { GraphExplorer } from "@/components/GraphExplorer";
+import { LineageViewer } from "@/components/LineageViewer";
 
 type Params = { module: string; type: string; slug: string };
 
-async function load(params: Params): Promise<{ entity: EntityDetailOut; graph: GraphOut }> {
+async function load(
+  params: Params,
+): Promise<{ entity: EntityDetailOut; graph: GraphOut; lineage: LineageOut | null }> {
   const entity = await api.entityBySlug(params.module, params.type, params.slug);
   const graph = await api.graph(entity.id);
-  return { entity, graph };
+  let lineage: LineageOut | null = null;
+  if (hasLineageView(entity.type)) {
+    try {
+      lineage = await api.lineage(entity.id);
+    } catch (e) {
+      if (!(e instanceof ApiError && e.status === 404)) throw e;
+    }
+  }
+  return { entity, graph, lineage };
 }
 
 export async function generateMetadata({
@@ -39,8 +51,9 @@ export default async function EntityPage({ params }: { params: Promise<Params> }
   const p = await params;
   let entity: EntityDetailOut;
   let graph: GraphOut;
+  let lineage: LineageOut | null;
   try {
-    ({ entity, graph } = await load(p));
+    ({ entity, graph, lineage } = await load(p));
   } catch (e) {
     if (e instanceof ApiError && e.status === 404) notFound();
     throw e;
@@ -82,6 +95,29 @@ export default async function EntityPage({ params }: { params: Promise<Params> }
       <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_18rem]">
         {/* Main column */}
         <div className="order-2 min-w-0 lg:order-1">
+          {hasLineageView(entity.type) && lineage && (
+            <section className="mb-8">
+              <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
+                <h2 className="text-lg font-semibold tracking-tight">Lineage</h2>
+                {lineage.transmission_count > 0 && (
+                  <span className="text-xs text-muted tabular-nums">
+                    {lineage.transmission_count} transmission
+                    {lineage.transmission_count === 1 ? "" : "s"}
+                  </span>
+                )}
+              </div>
+              {lineage.chart.id !== entity.id && (
+                <p className="mb-3 text-sm text-muted">
+                  Showing transmission tree for{" "}
+                  <Link href={entityHref(lineage.chart)} className="text-ink underline-offset-2 hover:underline">
+                    {lineage.chart.label}
+                  </Link>
+                </p>
+              )}
+              <LineageViewer lineage={lineage} />
+            </section>
+          )}
+
           {entity.claims.length > 0 && (
             <section>
               <h2 className="mb-3 text-lg font-semibold tracking-tight">Claims</h2>
@@ -101,7 +137,7 @@ export default async function EntityPage({ params }: { params: Promise<Params> }
             </section>
           )}
 
-          {graph.nodes.length > 1 && (
+          {graph.nodes.length > 1 && !hasLineageView(entity.type) && (
             <section className="mt-8">
               <h2 className="mb-3 text-lg font-semibold tracking-tight">Graph</h2>
               <GraphExplorer graph={graph} rootId={entity.id} />

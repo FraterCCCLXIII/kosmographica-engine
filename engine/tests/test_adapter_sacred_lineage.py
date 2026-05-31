@@ -16,7 +16,16 @@ def _tables() -> dict:
             {"id": 5, "slug": "zen", "name": "Zen", "description": None, "year_founded": 600},
             {"id": 6, "slug": "noname", "name": None, "description": "orphan"},  # skipped: no name
         ],
-        "lineage_charts": [{"id": 21, "slug": "ramana", "name": "Ramana lineage", "description": None}],
+        "lineage_charts": [
+            {
+                "id": 21,
+                "slug": "ramana",
+                "name": "Ramana lineage",
+                "description": None,
+                "tradition_id": 1,
+                "school_id": 5,
+            }
+        ],
         "concepts": [
             {"id": 1, "slug": "sunyata", "name": "Sunyata", "name_native": None, "summary": "Emptiness."},
             {"id": 2, "slug": "brahman", "name": "Brahman", "summary": "Ultimate reality."},
@@ -84,6 +93,15 @@ def test_adapter_is_partial_tolerant():
     link = next(r for r in env.relationships if r.ref.startswith("sl:entitylink"))
     assert link.predicate == "compared_with"
     assert link.data["certainty"] == "disputed"
+
+    chart_links = [r for r in env.relationships if r.predicate == "has_lineage_chart"]
+    assert len(chart_links) == 2
+    assert {r.subject for r in chart_links} == {"sl:tradition:1", "sl:school:5"}
+    assert all(r.object == "sl:lineagechart:21" for r in chart_links)
+
+    chart = next(e for e in env.entities if e.type == "LineageChart")
+    assert chart.data["tradition_id"] == 1
+    assert chart.data["school_id"] == 5
 
 
 def test_adapter_handles_empty_tables():

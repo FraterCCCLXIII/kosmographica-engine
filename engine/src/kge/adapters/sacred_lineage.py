@@ -195,8 +195,19 @@ def sacred_lineage_to_envelope(
             data={"slug": row.get("slug")}, valid_from=row.get("year_founded"),
         )
     for row in tables.get("lineage_charts", []):
-        add_entity("lineagechart", row, etype="LineageChart", label_key="name", desc_key="description",
-                   data={"slug": row.get("slug")})
+        chart_data: dict[str, Any] = {"slug": row.get("slug")}
+        if row.get("tradition_id") is not None:
+            chart_data["tradition_id"] = row["tradition_id"]
+        if row.get("school_id") is not None:
+            chart_data["school_id"] = row["school_id"]
+        add_entity(
+            "lineagechart",
+            row,
+            etype="LineageChart",
+            label_key="name",
+            desc_key="description",
+            data=chart_data,
+        )
     for row in tables.get("concepts", []):
         add_entity("concept", row, etype="Concept", label_key="name", desc_key="summary",
                    data={"slug": row.get("slug")})
@@ -220,6 +231,7 @@ def sacred_lineage_to_envelope(
 
     _add_figures(tables, pool, add_entity)
     _add_transmissions(tables, relationships, emitted)
+    _add_lineage_chart_links(tables, relationships, emitted)
     _add_entity_links(tables, relationships, emitted)
 
     meta = {"adapter": "sacred-lineage", "skipped_rows": skipped}
@@ -287,6 +299,29 @@ def _add_transmissions(tables, relationships, emitted) -> None:
                 data=data,
             )
         )
+
+
+def _add_lineage_chart_links(tables, relationships, emitted) -> None:
+    for row in tables.get("lineage_charts", []):
+        chart_ref = _ref("lineagechart", row["id"])
+        if chart_ref not in emitted:
+            continue
+        for table, key in (("school", "school_id"), ("tradition", "tradition_id")):
+            parent_id = row.get(key)
+            if parent_id is None:
+                continue
+            parent_ref = _ref(table, parent_id)
+            if parent_ref not in emitted:
+                continue
+            relationships.append(
+                RelationshipIn(
+                    ref=_ref("lineagechartlink", f"{table}:{parent_id}:{row['id']}"),
+                    external_id=_ref("lineagechartlink", f"{table}:{parent_id}:{row['id']}"),
+                    subject=parent_ref,
+                    predicate="has_lineage_chart",
+                    object=chart_ref,
+                )
+            )
 
 
 def _add_entity_links(tables, relationships, emitted) -> None:
