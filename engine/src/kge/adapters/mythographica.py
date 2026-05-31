@@ -11,11 +11,56 @@ See `../../../docs/architecture/federation-and-ingestion.md`.
 from __future__ import annotations
 
 import re
+from typing import Iterable
 
 from ..envelope import ClaimIn, EntityIn, Envelope, RelationshipIn, SourceIn
 
 MODULE = "religion-mythology"
 SOURCE_SYSTEM = "mythographica"
+
+# Auto-generated catalog stubs to reject (e.g. "Germanic figure 5", "Germanic
+# comparandum 56"). These carry no real content — a templated name/description and
+# a generic source — so they are filtered before mapping (see _is_placeholder_node).
+_PLACEHOLDER_NAME = re.compile(r"\b(?:figure|comparandum)\s*\d+\b", re.IGNORECASE)
+
+
+def _is_placeholder_node(node: dict) -> bool:
+    """True for empty/partial catalog-filler nodes that should not be ingested."""
+    name = (node.get("name") or "").strip()
+    if not name:
+        return True  # unusable without a label
+    if _PLACEHOLDER_NAME.search(name):
+        return True
+    if "placeholder" in (node.get("description") or "").strip().lower():
+        return True
+    domains = [str(d).strip().lower() for d in (node.get("domains") or [])]
+    if domains == ["catalog"]:
+        return True
+    return False
+
+
+def merge_mythgraphs(graphs: Iterable[dict]) -> dict:
+    """Merge several MythGraph ``{nodes, edges}`` dicts into one (dedup by id/ref).
+
+    Nodes dedupe on ``id`` and edges on ``id`` (or a composite key), keeping the
+    first occurrence. Merging before mapping preserves edges that span source files.
+    """
+    nodes: dict[str, dict] = {}
+    edges: dict[str, dict] = {}
+    for graph in graphs:
+        for node in graph.get("nodes", []) or []:
+            nid = node.get("id")
+            if nid is not None and nid not in nodes:
+                nodes[nid] = node
+        for edge in graph.get("edges", []) or []:
+            key = edge.get("id") or f"e_{edge.get('source')}_{edge.get('target')}_{edge.get('relationType')}"
+            if key not in edges:
+                edges[key] = edge
+    return {
+        "meta": {"title": "Mythographica (merged)", "version": "merged"},
+        "nodes": list(nodes.values()),
+        "edges": list(edges.values()),
+    }
 
 # Coarse mapping from MythGraph node `type` to a Kosmographica entity type; the original
 # value is preserved as `subtype` and in `data.myth_type`.
@@ -92,16 +137,24 @@ def mythographica_to_envelope(
     *,
     generator: str = "mythographica-adapter",
     batch_id: str | None = None,
+    drop_placeholders: bool = True,
 ) -> Envelope:
-    """Convert a MythGraph ``{nodes, edges}`` dict into a contribution envelope."""
+    """Convert a MythGraph ``{nodes, edges}`` dict into a contribution envelope.
+
+    Empty/partial catalog stubs (``drop_placeholders``, default on) are filtered out
+    before mapping, and any edge touching a dropped node is skipped as an orphan.
+    """
     pool = _SourcePool()
     entities: list[EntityIn] = []
     relationships: list[RelationshipIn] = []
     claims: list[ClaimIn] = []
 
-    node_ids = {n["id"] for n in graph.get("nodes", [])}
+    raw_nodes = graph.get("nodes", []) or []
+    nodes = [n for n in raw_nodes if not (drop_placeholders and _is_placeholder_node(n))]
+    skipped_placeholder = len(raw_nodes) - len(nodes)
+    node_ids = {n["id"] for n in nodes}
 
-    for n in graph.get("nodes", []):
+    for n in nodes:
         raw_type = (n.get("type") or "deity").strip()
         data = {k: n[k] for k in _DATA_FIELDS if n.get(k) not in (None, [], "")}
         data["myth_type"] = raw_type
@@ -177,7 +230,10 @@ def mythographica_to_envelope(
         generator=generator,
         batch_id=batch_id,
         requires_grounding=False,
-        meta={k: graph["meta"][k] for k in ("title", "version") if graph.get("meta", {}).get(k)},
+        meta={
+            **{k: graph["meta"][k] for k in ("title", "version") if graph.get("meta", {}).get(k)},
+            "skipped_placeholder": skipped_placeholder,
+        },
         sources=pool.sources,
         entities=entities,
         relationships=relationships,

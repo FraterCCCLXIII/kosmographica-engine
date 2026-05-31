@@ -1,63 +1,90 @@
 import Link from "next/link";
 import { api, ApiError } from "@/lib/api";
 import { EntityCard } from "@/components/EntityCard";
+import { SearchBox } from "@/components/SearchBox";
 import type { EntityOut } from "@/lib/types";
 
 export const revalidate = 300;
 
-function groupByType(items: EntityOut[]): [string, EntityOut[]][] {
-  const map = new Map<string, EntityOut[]>();
-  for (const e of items) {
-    const list = map.get(e.type) ?? [];
-    list.push(e);
-    map.set(e.type, list);
-  }
-  return [...map.entries()].sort((a, b) => b[1].length - a[1].length);
-}
-
-export default async function HomePage() {
-  let items: EntityOut[] = [];
+export default async function StartPage() {
+  let total = 0;
+  let featured: EntityOut[] = [];
+  let topTypes: { type: string; count: number }[] = [];
   let offline = false;
+
   try {
     const page = await api.listEntities({ limit: 60 });
-    items = page.items;
+    total = page.total;
+    featured = page.items.slice(0, 6);
+    const counts = new Map<string, number>();
+    for (const e of page.items) counts.set(e.type, (counts.get(e.type) ?? 0) + 1);
+    topTypes = [...counts.entries()]
+      .map(([type, count]) => ({ type, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 6);
   } catch (e) {
     offline = e instanceof ApiError || e instanceof Error;
   }
 
   return (
-    <div>
-      <section className="mb-10 max-w-2xl">
-        <h1 className="text-3xl font-semibold leading-tight tracking-tight sm:text-4xl">
-          A source-grounded graph of human thought
+    <div className="flex flex-col items-center">
+      <section className="flex w-full max-w-2xl flex-col items-center pt-10 text-center sm:pt-20">
+        <h1 className="font-display text-4xl font-semibold tracking-tight sm:text-6xl">
+          Kosmographica
         </h1>
-        <p className="mt-3 text-base leading-relaxed text-muted">
-          Religion, mythology, and the figures, concepts, and traditions that connect them —
-          federated from multiple sources, with every claim cited and trust-rated.
+        <p className="mt-4 text-base leading-relaxed text-muted sm:text-lg">
+          A source-grounded graph of human thought — religion, mythology, and the figures,
+          concepts, and traditions that connect them. Every claim is cited and trust-rated.
         </p>
+
+        <div className="mt-8 w-full">
+          <SearchBox autoFocus />
+        </div>
+
+        {!offline && total > 0 && (
+          <p className="mt-3 text-xs text-muted">
+            Searching{" "}
+            <span className="font-medium text-ink tabular-nums">{total.toLocaleString()}</span>{" "}
+            cited {total === 1 ? "entity" : "entities"}.
+          </p>
+        )}
+
+        {topTypes.length > 0 && (
+          <div className="mt-6 flex flex-wrap justify-center gap-2">
+            {topTypes.map(({ type }) => (
+              <Link
+                key={type}
+                href="/browse"
+                className="rounded-full border border-border px-3 py-1 text-xs text-muted transition-colors hover:border-accent hover:text-ink"
+              >
+                {type}
+              </Link>
+            ))}
+          </div>
+        )}
       </section>
 
       {offline ? (
-        <p className="rounded-lg border border-border bg-surface p-4 text-sm text-muted">
+        <p className="mt-12 rounded-lg border border-border bg-surface p-4 text-sm text-muted">
           The knowledge engine isn’t reachable right now. Start it on{" "}
           <code>localhost:8088</code> and reload.
         </p>
       ) : (
-        <div className="space-y-8">
-          {groupByType(items).map(([type, group]) => (
-            <section key={type}>
-              <h2 className="mb-3 text-lg font-semibold tracking-tight">{type}</h2>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {group.slice(0, 9).map((e) => (
-                  <EntityCard key={e.id} entity={e} />
-                ))}
-              </div>
-            </section>
-          ))}
-          <p className="text-sm text-muted">
-            Looking for something specific? <Link href="/search" className="text-accent-ink underline">Search the graph</Link>.
-          </p>
-        </div>
+        featured.length > 0 && (
+          <section className="mt-16 w-full max-w-5xl">
+            <div className="mb-3 flex items-baseline justify-between">
+              <h2 className="text-lg font-semibold tracking-tight">Explore the graph</h2>
+              <Link href="/browse" className="text-sm text-accent-ink underline">
+                Browse all
+              </Link>
+            </div>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {featured.map((e) => (
+                <EntityCard key={e.id} entity={e} />
+              ))}
+            </div>
+          </section>
+        )
       )}
     </div>
   );

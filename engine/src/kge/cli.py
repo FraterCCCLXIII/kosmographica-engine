@@ -9,12 +9,19 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import glob
 import json
+import os
 import sys
 
 from sqlalchemy import func, select
 
-from .adapters import load_sqlite, mythographica_to_envelope, sacred_lineage_to_envelope
+from .adapters import (
+    load_sqlite,
+    merge_mythgraphs,
+    mythographica_to_envelope,
+    sacred_lineage_to_envelope,
+)
 from .db import session_scope
 from .models import Claim, Entity, Relationship, Source
 from .pipeline import ingest
@@ -22,10 +29,25 @@ from .pipeline import ingest
 _ADAPTERS = {"mythographica": mythographica_to_envelope, "sacred_lineage": sacred_lineage_to_envelope}
 
 
+def _load_mythgraph_dir(path: str) -> dict:
+    """Merge every ``{nodes, edges}`` JSON under a directory into one graph."""
+    graphs: list[dict] = []
+    for fp in sorted(glob.glob(os.path.join(path, "**", "*.json"), recursive=True)):
+        try:
+            data = json.loads(open(fp, encoding="utf-8").read())
+        except (json.JSONDecodeError, OSError):
+            continue
+        if isinstance(data, dict) and ("nodes" in data or "edges" in data):
+            graphs.append(data)
+    return merge_mythgraphs(graphs)
+
+
 def _load_input(source: str, path: str):
-    """Sacred-Lineage seeds from a SQLite DB; others from a JSON graph."""
+    """Sacred-Lineage seeds from a SQLite DB; MythGraph from a JSON file or directory."""
     if source == "sacred_lineage":
         return load_sqlite(path)
+    if os.path.isdir(path):
+        return _load_mythgraph_dir(path)
     return json.loads(open(path, encoding="utf-8").read())
 
 

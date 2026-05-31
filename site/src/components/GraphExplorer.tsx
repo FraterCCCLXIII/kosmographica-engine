@@ -9,7 +9,8 @@ import { entityHref } from "@/lib/types";
 type SimNode = { id: string; label: string; type: string; href: string; root: boolean } & d3.SimulationNodeDatum;
 type SimLink = { source: string; target: string; predicate: string } & d3.SimulationLinkDatum<SimNode>;
 
-const PALETTE = ["#5a4fcf", "#0e7490", "#b45309", "#047857", "#9d174d", "#4d7c0f", "#7c3aed"];
+// Monochromatic ramp — mid-grays that read on both light and dark canvases.
+const PALETTE = ["#737373", "#8a8a8a", "#a3a3a3", "#5c5c5c", "#bdbdbd", "#969696", "#666666"];
 
 export function GraphExplorer({ graph, rootId }: { graph: GraphOut; rootId: string }) {
   const router = useRouter();
@@ -71,7 +72,7 @@ export function GraphExplorer({ graph, rootId }: { graph: GraphOut; rootId: stri
     node
       .append("circle")
       .attr("r", (d) => (d.root ? 11 : 7))
-      .attr("fill", (d) => color(d.type))
+      .attr("fill", (d) => (d.root ? "var(--accent)" : color(d.type)))
       .attr("stroke", "var(--surface)")
       .attr("stroke-width", (d) => (d.root ? 3 : 2));
 
