@@ -10,7 +10,17 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from .config import settings
 
-engine = create_engine(settings.database_url, future=True, pool_pre_ping=True)
+# Read endpoints fan out under concurrency (e.g. a browse page that prefetches many
+# detail routes), so the pool is sized well above SQLAlchemy's default 5+10. A short
+# pool_timeout makes an over-saturated server fail fast instead of blocking 30s.
+engine = create_engine(
+    settings.database_url,
+    future=True,
+    pool_pre_ping=True,
+    pool_size=20,
+    max_overflow=40,
+    pool_timeout=10,
+)
 SessionLocal = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False, future=True)
 
 

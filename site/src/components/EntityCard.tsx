@@ -9,6 +9,7 @@ export function EntityCard({ entity }: { entity: EntityOut }) {
   return (
     <Link
       href={entityHref(entity)}
+      prefetch={false}
       className="group block rounded-lg border border-border bg-surface p-4 transition-colors hover:border-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
     >
       <div className="flex items-start justify-between gap-3">

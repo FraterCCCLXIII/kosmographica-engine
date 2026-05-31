@@ -23,6 +23,33 @@ export const TIER_META: Record<TrustTier, { label: string; cls: string; title: s
   },
 };
 
+// Historicity facet (engine: data.status, derived by kge.taxonomy). Orthogonal to type.
+export const STATUS_META: Record<
+  string,
+  { label: string; title: string }
+> = {
+  historical: {
+    label: "Historical",
+    title: "Attested as a historical person (e.g. a documented master or teacher).",
+  },
+  legendary: {
+    label: "Legendary",
+    title: "A legendary or quasi-historical figure (heroes, mythic kings).",
+  },
+  mythic: {
+    label: "Mythic",
+    title: "A mythic being — divine, primordial, or demonic — not a historical person.",
+  },
+  reconstructed: {
+    label: "Reconstructed",
+    title: "Scholarly reconstruction (e.g. a Proto-Indo-European deity), not directly attested.",
+  },
+  unknown: {
+    label: "Historicity unknown",
+    title: "Historicity is undetermined from the source.",
+  },
+};
+
 export function pct(n: number): string {
   return `${Math.round(n * 100)}%`;
 }

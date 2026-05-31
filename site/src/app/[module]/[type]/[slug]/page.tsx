@@ -6,7 +6,7 @@ import { lifespan, TIER_META } from "@/lib/format";
 import { entityHref } from "@/lib/types";
 import { hasLineageView } from "@/lib/lineage";
 import type { EntityDetailOut, GraphOut, LineageOut } from "@/lib/types";
-import { ConfidenceBar, DisputedBadge, TrustBadge } from "@/components/Badges";
+import { ConfidenceBar, DisputedBadge, ReviewBadge, StatusBadge, TrustBadge } from "@/components/Badges";
 import { ClaimSources } from "@/components/ClaimSources";
 import { GraphExplorer } from "@/components/GraphExplorer";
 import { LineageViewer } from "@/components/LineageViewer";
@@ -60,6 +60,12 @@ export default async function EntityPage({ params }: { params: Promise<Params> }
   }
 
   const description = typeof entity.data.description === "string" ? entity.data.description : null;
+  const status = typeof entity.data.status === "string" ? entity.data.status : null;
+  const needsReview = entity.data.needs_taxonomy_review === true;
+  const reviewReason =
+    typeof entity.data.taxonomy_review_reason === "string"
+      ? entity.data.taxonomy_review_reason
+      : undefined;
   const dates = lifespan(entity.valid_from, entity.valid_to);
   const nodeById = new Map(graph.nodes.map((n) => [n.id, n]));
   const outgoing = graph.edges.filter((e) => e.subject_id === entity.id);
@@ -81,6 +87,8 @@ export default async function EntityPage({ params }: { params: Promise<Params> }
         <div className="flex flex-wrap items-center gap-3">
           <h1 className="text-3xl font-semibold tracking-tight">{entity.label}</h1>
           <TrustBadge tier={entity.tier} />
+          {status && <StatusBadge status={status} />}
+          {needsReview && <ReviewBadge reason={reviewReason} />}
         </div>
         <p className="mt-2 text-sm text-muted">
           {entity.type}
@@ -221,8 +229,17 @@ function FactRow({ label, value }: { label: string; value: string }) {
 // (skips description, which is shown in the header, and any nested objects).
 function infoboxFacts(entity: EntityDetailOut): { label: string; value: string }[] {
   const facts: { label: string; value: string }[] = [];
+  // Keys surfaced elsewhere (header badges / title) — don't repeat them as raw facts.
+  const SKIP = new Set([
+    "description",
+    "status",
+    "needs_taxonomy_review",
+    "taxonomy_review_reason",
+    "is_collective",
+    "myth_type",
+  ]);
   for (const [key, raw] of Object.entries(entity.data)) {
-    if (key === "description" || raw === null || raw === undefined) continue;
+    if (SKIP.has(key) || raw === null || raw === undefined) continue;
     if (typeof raw === "object") continue;
     const value = typeof raw === "boolean" ? (raw ? "Yes" : "No") : String(raw);
     if (!value.trim()) continue;

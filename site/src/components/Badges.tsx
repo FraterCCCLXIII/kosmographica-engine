@@ -1,5 +1,5 @@
 import type { TrustTier } from "@/lib/types";
-import { TIER_META, pct } from "@/lib/format";
+import { STATUS_META, TIER_META, pct } from "@/lib/format";
 
 export function TrustBadge({ tier }: { tier: TrustTier }) {
   const meta = TIER_META[tier];
@@ -24,6 +24,30 @@ export function ConfidenceBar({ value }: { value: number }) {
         />
       </span>
       <span className="text-xs tabular-nums text-muted">{pct(value)}</span>
+    </span>
+  );
+}
+
+export function StatusBadge({ status }: { status: string }) {
+  const meta = STATUS_META[status];
+  if (!meta) return null;
+  return (
+    <span
+      title={meta.title}
+      className="inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-xs font-medium text-muted"
+    >
+      {meta.label}
+    </span>
+  );
+}
+
+export function ReviewBadge({ reason }: { reason?: string }) {
+  return (
+    <span
+      title={reason || "Flagged for taxonomy review."}
+      className="inline-flex items-center gap-1 rounded-full border border-disputed px-2 py-0.5 text-xs font-medium text-disputed"
+    >
+      Needs review
     </span>
   );
 }

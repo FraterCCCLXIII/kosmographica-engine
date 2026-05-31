@@ -14,6 +14,7 @@ import re
 from typing import Iterable
 
 from ..envelope import ClaimIn, EntityIn, Envelope, RelationshipIn, SourceIn
+from ..taxonomy import apply_classification_data, classify
 
 MODULE = "religion-mythology"
 SOURCE_SYSTEM = "mythographica"
@@ -62,21 +63,9 @@ def merge_mythgraphs(graphs: Iterable[dict]) -> dict:
         "edges": list(edges.values()),
     }
 
-# Coarse mapping from MythGraph node `type` to a Kosmographica entity type; the original
+# Node `type` -> canonical entity type, historicity status, and review flags are resolved
+# by the shared controlled vocabulary in `kge.taxonomy` (single source of truth). The raw
 # value is preserved as `subtype` and in `data.myth_type`.
-TYPE_MAP = {
-    "deity": "Deity",
-    "reconstructed_deity": "Deity",
-    "reconstructed": "Deity",
-    "primordial": "Primordial",
-    "reconstructed_primordial": "Primordial",
-    "hero": "Hero",
-    "mythic_king": "Hero",
-    "sage": "Sage",
-    "demon": "Demon",
-    "abstract_personification": "Concept",
-    "motif": "Motif",
-}
 
 # Node confidence labels -> numeric confidence for the description claim.
 CONFIDENCE_LEVEL = {"high": 0.9, "medium": 0.65, "low": 0.4, "speculative": 0.2}
@@ -155,7 +144,7 @@ def mythographica_to_envelope(
     node_ids = {n["id"] for n in nodes}
 
     for n in nodes:
-        raw_type = (n.get("type") or "deity").strip()
+        raw_type = (n.get("type") or "").strip()
         data = {k: n[k] for k in _DATA_FIELDS if n.get(k) not in (None, [], "")}
         data["myth_type"] = raw_type
         if n.get("description"):
@@ -163,13 +152,18 @@ def mythographica_to_envelope(
         if n.get("confidenceLevel"):
             data["confidence_level"] = n["confidenceLevel"]
 
+        cls = classify(
+            myth_type=raw_type, ontology_class=n.get("ontologyClass"), label=n["name"]
+        )
+        data = apply_classification_data(data, cls)
+
         entities.append(
             EntityIn(
                 ref=n["id"],
                 external_id=n["id"],
                 module=MODULE,
-                type=TYPE_MAP.get(raw_type, "Deity"),
-                subtype=raw_type,
+                type=cls.entity_type,
+                subtype=cls.subtype,
                 label=n["name"],
                 data=data,
                 valid_from=n.get("attestedFrom"),

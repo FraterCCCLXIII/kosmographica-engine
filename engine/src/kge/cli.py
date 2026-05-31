@@ -123,6 +123,25 @@ def _cmd_reverify(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_reclassify(args: argparse.Namespace) -> int:
+    from .jobs import reclassify_entities
+
+    with session_scope() as session:
+        report = reclassify_entities(
+            session, source_system=args.source, dry_run=not args.apply
+        )
+        print(json.dumps(report.as_dict(), indent=2))
+        if args.apply:
+            print(f"applied: {report.changed} entities updated", file=sys.stderr)
+        else:
+            print(
+                f"dry-run: {report.changed} entities would change "
+                f"({report.flagged_for_review} flagged for review). Re-run with --apply.",
+                file=sys.stderr,
+            )
+    return 0
+
+
 def _cmd_worker(args: argparse.Namespace) -> int:
     """Inline scheduler (ADR-005: synchronous, no queue) — periodic re-verification."""
     import time
@@ -185,6 +204,13 @@ def main(argv: list[str] | None = None) -> int:
     rev.add_argument("--generator", default=None)
     rev.add_argument("--tier", default=None)
     rev.set_defaults(func=_cmd_reverify)
+
+    rc = sub.add_parser(
+        "reclassify", help="recompute entity type/subtype/status against the controlled taxonomy"
+    )
+    rc.add_argument("--source", default="mythographica", help="source_system to reclassify")
+    rc.add_argument("--apply", action="store_true", help="write changes (default is dry-run)")
+    rc.set_defaults(func=_cmd_reclassify)
 
     work = sub.add_parser("worker", help="inline scheduler: periodic re-verification (ADR-005)")
     work.add_argument("--interval", type=float, default=300.0, help="seconds between runs")
