@@ -7,7 +7,8 @@
  * so the whole UI reads as one tonal family. Every UI color references a token — no
  * hardcoded values — so light/dark and future themes are just alternate token sets.
  */
-:root {
+:root,
+[data-theme="light"] {
   --canvas: #ffffff;
   --surface: #ffffff;
   --ink: #0a0a0a;
@@ -27,8 +28,28 @@
   --confidence-track: #e4e4e4;
 }
 
+[data-theme="dark"] {
+  --canvas: #0a0a0a;
+  --surface: #141414;
+  --ink: #ededed;
+  --muted: #8a8a8a;
+  --border: #262626;
+  --accent: #ededed;
+  --accent-ink: #ffffff;
+
+  /* Inverted ramp: lighter = more trusted on dark. */
+  --tier-unverified: #6b6b6b;
+  --tier-validated: #9b9b9b;
+  --tier-reviewed: #c9c9c9;
+  --tier-expert: #ffffff;
+
+  --disputed: #ededed;
+  --confidence-track: #262626;
+}
+
+/* System preference before the boot script runs (avoids flash on first paint). */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --canvas: #0a0a0a;
     --surface: #141414;
     --ink: #ededed;
@@ -36,13 +57,10 @@
     --border: #262626;
     --accent: #ededed;
     --accent-ink: #ffffff;
-
-    /* Inverted ramp: lighter = more trusted on dark. */
     --tier-unverified: #6b6b6b;
     --tier-validated: #9b9b9b;
     --tier-reviewed: #c9c9c9;
     --tier-expert: #ffffff;
-
     --disputed: #ededed;
     --confidence-track: #262626;
   }

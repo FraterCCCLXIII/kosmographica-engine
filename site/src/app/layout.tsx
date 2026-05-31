@@ -3,6 +3,7 @@ import { Spectral, Inter } from "next/font/google";
 import "./globals.css";
 import { NavShell } from "@/components/NavShell";
 import { loadBrowseCatalog } from "@/lib/browse-catalog";
+import { themeBootScript } from "@/lib/theme";
 
 const display = Spectral({
   variable: "--font-display",
@@ -27,7 +28,11 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
     <html
       lang="en"
       className={`${display.variable} ${sans.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
+      </head>
       <body className="h-full">
         <NavShell browseCatalog={browseCatalog}>{children}</NavShell>
       </body>

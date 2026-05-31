@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useSyncExternalStore, type ReactNode } from "react";
 import { SearchBox } from "@/components/SearchBox";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { NavBrowseTree } from "@/components/NavBrowseTree";
 import type { BrowseCatalog } from "@/lib/browse-catalog";
 
@@ -64,7 +65,7 @@ export function NavShell({
       <header
         className={
           isStart
-            ? "absolute left-0 top-0 z-30 flex h-[var(--site-header-height)] items-center p-2"
+            ? "absolute left-0 right-0 top-0 z-30 flex h-[var(--site-header-height)] items-center justify-between p-2"
             : "relative z-30 flex h-[var(--site-header-height)] shrink-0 items-center border-b border-border bg-canvas/85 py-2.5 pl-2 pr-3 backdrop-blur sm:pr-4"
         }
       >
@@ -93,16 +94,16 @@ export function NavShell({
         </div>
 
         {!isStart && (
-          <>
-            <div className="pointer-events-none absolute left-1/2 top-1/2 hidden w-[min(28rem,50vw)] -translate-x-1/2 -translate-y-1/2 sm:block">
-              <div className="pointer-events-auto">
-                <SearchBox />
-              </div>
+          <div className="pointer-events-none absolute left-1/2 top-1/2 hidden w-[min(28rem,50vw)] -translate-x-1/2 -translate-y-1/2 sm:block">
+            <div className="pointer-events-auto">
+              <SearchBox />
             </div>
-
-            <div className="ml-auto" aria-hidden />
-          </>
+          </div>
         )}
+
+        <div className="ml-auto shrink-0">
+          <ThemeToggle />
+        </div>
       </header>
 
       {/* Body — docked sidebar (desktop) pushes the scrollable main column. */}
