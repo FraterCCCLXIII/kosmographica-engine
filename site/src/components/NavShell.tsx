@@ -54,10 +54,18 @@ export function NavShell({ children }: { children: ReactNode }) {
     return () => document.removeEventListener("keydown", onKey);
   }, [open]);
 
+  const isStart = pathname === "/";
+
   return (
-    <div className="flex h-svh min-h-0 w-full flex-col overflow-hidden">
-      {/* Header — full width; logo cluster flush left, search centered to viewport. */}
-      <header className="relative z-30 flex shrink-0 items-center border-b border-border bg-canvas/85 py-2.5 pl-2 pr-3 backdrop-blur sm:pr-4">
+    <div className="relative flex h-svh min-h-0 w-full flex-col overflow-hidden">
+      {/* Start page: hamburger only, no bar/border. Other pages: full chrome header. */}
+      <header
+        className={
+          isStart
+            ? "absolute left-0 top-0 z-30 p-2"
+            : "relative z-30 flex shrink-0 items-center border-b border-border bg-canvas/85 py-2.5 pl-2 pr-3 backdrop-blur sm:pr-4"
+        }
+      >
         <div className="flex min-w-0 items-center gap-1.5">
           <button
             type="button"
@@ -71,21 +79,28 @@ export function NavShell({ children }: { children: ReactNode }) {
               <path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
             </svg>
           </button>
-          <Link
-            href="/"
-            className="truncate font-display text-lg font-semibold tracking-tight sm:text-xl"
-          >
-            Kosmographica
-          </Link>
+
+          {!isStart && (
+            <Link
+              href="/"
+              className="truncate font-display text-lg font-normal uppercase tracking-tight sm:text-xl"
+            >
+              Kosmographica
+            </Link>
+          )}
         </div>
 
-        <div className="pointer-events-none absolute left-1/2 top-1/2 hidden w-[min(28rem,50vw)] -translate-x-1/2 -translate-y-1/2 sm:block">
-          <div className="pointer-events-auto">
-            <SearchBox />
-          </div>
-        </div>
+        {!isStart && (
+          <>
+            <div className="pointer-events-none absolute left-1/2 top-1/2 hidden w-[min(28rem,50vw)] -translate-x-1/2 -translate-y-1/2 sm:block">
+              <div className="pointer-events-auto">
+                <SearchBox />
+              </div>
+            </div>
 
-        <div className="ml-auto" aria-hidden />
+            <div className="ml-auto" aria-hidden />
+          </>
+        )}
       </header>
 
       {/* Body — docked sidebar (desktop) pushes the scrollable main column. */}
@@ -129,7 +144,7 @@ export function NavShell({ children }: { children: ReactNode }) {
           }`}
         >
           <div className="flex items-center justify-between border-b border-border px-5 py-3.5">
-            <span className="font-display text-lg font-semibold tracking-tight">Kosmographica</span>
+            <span className="font-display text-lg font-normal uppercase tracking-tight">Kosmographica</span>
             <button
               type="button"
               aria-label="Close navigation"

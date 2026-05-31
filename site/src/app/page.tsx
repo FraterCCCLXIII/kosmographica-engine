@@ -29,7 +29,7 @@ export default async function StartPage() {
   return (
     <div className="flex flex-col items-center">
       <section className="flex w-full max-w-2xl flex-col items-center pt-10 text-center sm:pt-20">
-        <h1 className="font-display text-4xl font-semibold tracking-tight sm:text-6xl">
+        <h1 className="font-display text-4xl font-normal uppercase tracking-tight sm:text-6xl">
           Kosmographica
         </h1>
         <p className="mt-4 text-base leading-relaxed text-muted sm:text-lg">
