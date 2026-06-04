@@ -52,3 +52,16 @@ Kosmographica is designed to integrate, not replace, these sibling projects:
 
 Design stage — these documents are discussion drafts. See the open questions in
 [`docs/core-meta-model.md`](docs/core-meta-model.md) §10.
+
+## Quick Start
+
+```bash
+# Start the engine API (requires PostgreSQL with pgvector)
+cd engine
+docker compose up -d db
+uv sync
+uv run alembic upgrade head
+uv run uvicorn kge.api.app:app --host 0.0.0.0 --port 8088
+```
+
+Then visit http://localhost:8088/docs for the interactive API documentation.
