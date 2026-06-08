@@ -50,6 +50,7 @@ def ingest(session: Session, env: Envelope, *, tier: str | None = None) -> Inges
         "sources_created": 0,
         "entities_created": 0,
         "entities_matched": 0,
+        "entities_updated": 0,
         "relationships_created": 0,
         "relationships_matched": 0,
         "claims_created": 0,
@@ -104,6 +105,11 @@ def _load_entities(
                 )
             )
         if existing:
+            if e.data:
+                merged = dict(existing.data or {})
+                merged.update(e.data)
+                existing.data = merged
+                counts["entities_updated"] = counts.get("entities_updated", 0) + 1
             ref_to_kid[e.ref] = existing.id
             counts["entities_matched"] += 1
             continue

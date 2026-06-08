@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { api, ApiError } from "@/lib/api";
+import { api, ApiError, engineOfflineHint } from "@/lib/api";
 import { apiTypeToSlug, browseHref } from "@/lib/browse-catalog";
 import { EntityCard } from "@/components/EntityCard";
 import { SearchBox } from "@/components/SearchBox";
@@ -70,8 +70,7 @@ export default async function StartPage() {
 
       {offline ? (
         <p className="mt-12 rounded-lg border border-border bg-surface p-4 text-sm text-muted">
-          The knowledge engine isn’t reachable right now. Start it on{" "}
-          <code>localhost:8088</code> and reload.
+          {engineOfflineHint()}
         </p>
       ) : (
         featured.length > 0 && (

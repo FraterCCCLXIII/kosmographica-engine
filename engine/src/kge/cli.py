@@ -17,6 +17,7 @@ import sys
 from sqlalchemy import func, select
 
 from .adapters import (
+    cosmograph_to_envelope,
     load_sqlite,
     merge_mythgraphs,
     mythographica_to_envelope,
@@ -26,7 +27,11 @@ from .db import session_scope
 from .models import Claim, Entity, Relationship, Source
 from .pipeline import ingest
 
-_ADAPTERS = {"mythographica": mythographica_to_envelope, "sacred_lineage": sacred_lineage_to_envelope}
+_ADAPTERS = {
+    "cosmograph": cosmograph_to_envelope,
+    "mythographica": mythographica_to_envelope,
+    "sacred_lineage": sacred_lineage_to_envelope,
+}
 
 
 def _load_mythgraph_dir(path: str) -> dict:
@@ -46,6 +51,8 @@ def _load_input(source: str, path: str):
     """Sacred-Lineage seeds from a SQLite DB; MythGraph from a JSON file or directory."""
     if source == "sacred_lineage":
         return load_sqlite(path)
+    if source == "cosmograph":
+        return json.loads(open(path, encoding="utf-8").read())
     if os.path.isdir(path):
         return _load_mythgraph_dir(path)
     return json.loads(open(path, encoding="utf-8").read())

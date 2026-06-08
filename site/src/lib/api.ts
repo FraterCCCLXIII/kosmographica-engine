@@ -13,6 +13,17 @@ import type {
 
 const BASE = process.env.KGE_API_URL ?? "http://localhost:8088";
 
+/** Shown when server-side fetches to the engine fail (API down or DB unreachable). */
+export function engineOfflineHint(): string {
+  const url = new URL(BASE);
+  const port = url.port || (url.protocol === "https:" ? "443" : "80");
+  return (
+    `The knowledge engine isn’t reachable. In engine/, run ` +
+    `\`docker compose up -d db\` (Postgres on :5459), then ` +
+    `\`uv run uvicorn kge.api.app:app --port ${port}\`, and reload.`
+  );
+}
+
 // ISR: revalidate public pages periodically rather than rendering on every hit.
 const REVALIDATE_SECONDS = 300;
 

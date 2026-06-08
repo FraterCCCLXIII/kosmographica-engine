@@ -7,6 +7,7 @@ import { entityHref } from "@/lib/types";
 import { hasLineageView } from "@/lib/lineage";
 import type { EntityDetailOut, GraphOut, LineageOut } from "@/lib/types";
 import { ConfidenceBar, DisputedBadge, ReviewBadge, StatusBadge, TrustBadge } from "@/components/Badges";
+import { entityImage } from "@/lib/entity-media";
 import { ClaimSources } from "@/components/ClaimSources";
 import { GraphExplorer } from "@/components/GraphExplorer";
 import { LineageViewer } from "@/components/LineageViewer";
@@ -60,6 +61,7 @@ export default async function EntityPage({ params }: { params: Promise<Params> }
   }
 
   const description = typeof entity.data.description === "string" ? entity.data.description : null;
+  const importance = typeof entity.data.importance === "string" ? entity.data.importance : null;
   const status = typeof entity.data.status === "string" ? entity.data.status : null;
   const needsReview = entity.data.needs_taxonomy_review === true;
   const reviewReason =
@@ -72,6 +74,7 @@ export default async function EntityPage({ params }: { params: Promise<Params> }
   const incoming = graph.edges.filter((e) => e.object_id === entity.id);
   const facts = infoboxFacts(entity);
   const hasConnections = outgoing.length > 0 || incoming.length > 0;
+  const image = entityImage(entity);
 
   return (
     <article>
@@ -84,6 +87,34 @@ export default async function EntityPage({ params }: { params: Promise<Params> }
       </nav>
 
       <header className="border-b border-border pb-5">
+        {image && (
+          <figure className="mb-5 overflow-hidden rounded-lg border border-border bg-[#f4f4f2]">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={image.imageUrl}
+              alt={image.title ?? entity.label}
+              className="max-h-80 w-full object-cover"
+            />
+            {(image.title || image.license) && (
+              <figcaption className="border-t border-border px-4 py-2 text-xs text-muted">
+                {image.pageUrl ? (
+                  <a
+                    href={image.pageUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-accent-ink underline"
+                  >
+                    {image.title ?? "Image"}
+                  </a>
+                ) : (
+                  <span>{image.title}</span>
+                )}
+                {image.license ? ` · ${image.license}` : ""}
+                {image.source ? ` · ${image.source.replace(/_/g, " ")}` : ""}
+              </figcaption>
+            )}
+          </figure>
+        )}
         <div className="flex flex-wrap items-center gap-3">
           <h1 className="text-3xl font-semibold tracking-tight">{entity.label}</h1>
           <TrustBadge tier={entity.tier} />
@@ -97,6 +128,9 @@ export default async function EntityPage({ params }: { params: Promise<Params> }
         </p>
         {description && (
           <p className="mt-4 max-w-2xl text-base leading-relaxed">{description}</p>
+        )}
+        {importance && importance !== description && (
+          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted">{importance}</p>
         )}
       </header>
 
@@ -232,11 +266,18 @@ function infoboxFacts(entity: EntityDetailOut): { label: string; value: string }
   // Keys surfaced elsewhere (header badges / title) — don't repeat them as raw facts.
   const SKIP = new Set([
     "description",
+    "importance",
     "status",
     "needs_taxonomy_review",
     "taxonomy_review_reason",
     "is_collective",
     "myth_type",
+    "thumbnail_url",
+    "image_url",
+    "image_title",
+    "image_source",
+    "image_license",
+    "image_page_url",
   ]);
   for (const [key, raw] of Object.entries(entity.data)) {
     if (SKIP.has(key) || raw === null || raw === undefined) continue;

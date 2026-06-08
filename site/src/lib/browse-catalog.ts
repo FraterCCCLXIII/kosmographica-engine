@@ -84,6 +84,20 @@ export const BROWSE_GROUPS = [
     ],
   },
   {
+    id: "cosmographs",
+    label: "Maps of reality",
+    types: [
+      {
+        slug: "cosmograph",
+        apiType: "Cosmograph",
+        label: "Cosmograph",
+        labelPlural: "Cosmographs",
+        description:
+          "Cosmographs — mythic, metaphysical, scientific, and informational maps of reality.",
+      },
+    ],
+  },
+  {
     id: "ideas",
     label: "Ideas & texts",
     types: [

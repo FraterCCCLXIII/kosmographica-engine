@@ -1,0 +1,4 @@
+# Snapshot archives are local dev backups; keep out of git (large + changes often).
+snapshots/*.dump
+snapshots/*.sql
+snapshots/*.sql.gz

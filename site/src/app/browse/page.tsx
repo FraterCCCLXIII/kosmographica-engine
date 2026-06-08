@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { ApiError } from "@/lib/api";
+import { ApiError, engineOfflineHint } from "@/lib/api";
 import { browseHref, emptyBrowseCatalog, fetchBrowseCatalog } from "@/lib/browse-catalog";
 
 export const revalidate = 300;
@@ -34,8 +34,7 @@ export default async function BrowsePage() {
 
       {offline ? (
         <p className="rounded-lg border border-border bg-surface p-4 text-sm text-muted">
-          The knowledge engine isn’t reachable right now. Start it on{" "}
-          <code>localhost:8088</code> and reload.
+          {engineOfflineHint()}
         </p>
       ) : (
         <div className="space-y-10">

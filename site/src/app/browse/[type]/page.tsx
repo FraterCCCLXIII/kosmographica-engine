@@ -91,6 +91,14 @@ export default async function BrowseTypePage({
         {!offline && (
           <p className="mt-2 text-xs text-muted tabular-nums">
             {total.toLocaleString()} {total === 1 ? "entry" : "entries"}
+            {slug === "cosmograph" && total > 0 && (
+              <>
+                {" · "}
+                <Link href="/cosmographs/timeline" className="text-accent-ink underline">
+                  Timeline view
+                </Link>
+              </>
+            )}
           </p>
         )}
       </header>

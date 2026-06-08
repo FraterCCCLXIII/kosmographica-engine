@@ -57,6 +57,20 @@ export function NavBrowseTree({
                         {t.count.toLocaleString()}
                       </span>
                     </Link>
+                    {t.slug === "cosmograph" && (
+                      <Link
+                        href="/cosmographs/timeline"
+                        onClick={onNavigate}
+                        aria-current={pathname === "/cosmographs/timeline" ? "page" : undefined}
+                        className={`ml-3 flex rounded-md px-2.5 py-1.5 text-sm transition-colors hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+                          pathname === "/cosmographs/timeline"
+                            ? "bg-surface font-medium text-ink"
+                            : "text-muted"
+                        }`}
+                      >
+                        Timeline
+                      </Link>
+                    )}
                   </li>
                 );
               })}
