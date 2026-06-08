@@ -440,6 +440,16 @@ NEW_RECORDS: list[dict] = [
 ]
 
 
+IMAGE_FIELDS = (
+    "thumbnail_url",
+    "image_url",
+    "image_title",
+    "image_source",
+    "image_license",
+    "image_page_url",
+)
+
+
 def load_csv() -> list[dict]:
     rows = []
     with CSV_PATH.open(encoding="utf-8") as f:
@@ -448,14 +458,34 @@ def load_csv() -> list[dict]:
     return rows
 
 
+def load_existing_images() -> dict[str, dict]:
+    if not OUT_PATH.exists():
+        return {}
+    records = json.loads(OUT_PATH.read_text(encoding="utf-8"))
+    out: dict[str, dict] = {}
+    for row in records:
+        label = row.get("cosmograph", "").strip()
+        if not label:
+            continue
+        preserved = {k: row[k] for k in IMAGE_FIELDS if row.get(k)}
+        if preserved:
+            out[label] = preserved
+    return out
+
+
 def main() -> None:
+    preserved_images = load_existing_images()
     by_label: dict[str, dict] = {}
     for row in load_csv():
         by_label[row["cosmograph"]] = row
     for row in NEW_RECORDS:
         by_label[row["cosmograph"]] = row
 
-    records = [enrich(label, row) for label, row in sorted(by_label.items(), key=lambda x: x[0])]
+    records = []
+    for label, row in sorted(by_label.items(), key=lambda x: x[0]):
+        merged = dict(row)
+        merged.update(preserved_images.get(label, {}))
+        records.append(enrich(label, merged))
     OUT_PATH.write_text(json.dumps(records, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     print(f"Wrote {len(records)} records to {OUT_PATH}")
 

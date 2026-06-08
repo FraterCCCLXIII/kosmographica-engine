@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import argparse
 import json
 import re
 import time
@@ -178,6 +179,21 @@ SEARCH_OVERRIDES: dict[str, str] = {
     "OpenAlex": "OpenAlex knowledge graph",
     "Ugaritic Cosmos": "Ugaritic Baal cosmology",
     "Phoenician Cosmos": "Phoenician cosmology Mediterranean",
+    "Islamic Falasifa Cosmos": "Ibn Sina Avicenna celestial spheres diagram",
+    "Huayan Cosmos": "Huayan four dharmadhatu Fazang diagram",
+    "Dzogchen Ground-Path-Fruit": "Dzogchen tantra Tibetan Buddhism thangka",
+    "Harranian Sabian Cosmos": "Harran astronomical instruments medieval",
+    "Ismaili Emanation Cosmology": "Ismaili cosmology Fatimid diagram",
+    "Llullian Cosmos": "Ramon Llull Figure 1 combinatorial wheels",
+    "Mazdakite Cosmos": "Sasanian Persia Mazdak social reform",
+    "Neo-Confucian Li/Qi Cosmos": "Zhu Xi li qi cosmology diagram",
+    "Ojibwe Midewiwin Cosmos": "Midewiwin birch bark scroll diagram",
+    "Teotihuacan Cosmic Plan": "Teotihuacan Pyramid of the Sun aerial",
+    "Tiantai Three Truths": "Tiantai Buddhism three truths mandala",
+    "Turkic Sky Cosmos": "Orkhon inscriptions Tengrism sky",
+    "Inuit Layered Cosmos": "Inuit cosmology shaman layers diagram",
+    "Dinka Cosmos": "Dinka cattle camp South Sudan ethnography",
+    "Amazonian Shamanic Cosmos": "Amazon ayahuasca shaman cosmology painting",
     "Zurvanite Cosmology": "Zurvanite Zoroastrianism",
     "Mazdakite Cosmos": "Mazdak Persian social cosmology",
 }
@@ -208,6 +224,34 @@ def search_query(row: dict) -> str:
     if tradition and tradition not in {"Global", "Philosophy", "AI", "Ecology", "Earth Science"}:
         return f"{label} {tradition} cosmology"
     return f"{label} cosmology diagram"
+
+
+RASTER_HINTS = (".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg", "/thumb/")
+NON_RASTER_HINTS = (".pdf", ".djvu", ".tif", ".tiff", ".doc", ".docx")
+
+
+def is_displayable(url: str) -> bool:
+    u = url.lower()
+    if any(h in u for h in NON_RASTER_HINTS):
+        return False
+    return any(h in u for h in RASTER_HINTS)
+
+
+def normalize_image(hit: dict) -> dict:
+    thumb = hit.get("thumbnail_url", "")
+    full = hit.get("image_url", "")
+    if full and not is_displayable(full) and thumb:
+        hit["image_url"] = thumb
+    return hit
+
+
+def needs_fetch(row: dict, *, refetch_bad: bool) -> bool:
+    thumb = row.get("thumbnail_url", "")
+    if not thumb:
+        return True
+    if refetch_bad and not is_displayable(row.get("image_url", "")):
+        return True
+    return False
 
 
 def license_ok(meta: dict) -> bool:
@@ -268,6 +312,92 @@ def _commons_search(query: str, *, broad: bool = False) -> dict | None:
     return best
 
 
+# Direct Commons file titles when search misses (label → File:…, tried in order).
+CURATED_FILES: dict[str, list[str]] = {
+    "Amazonian Shamanic Cosmos": [
+        "File:Shipibo_concent_art_Icaros.jpg",
+        "File:Ayahuasca_Vine.jpg",
+        "File:Shaman_in_Ecuador.jpg",
+    ],
+    "Dinka Cosmos": [
+        "File:Cattle of the Dinka people, Juba, South Sudan - 20101230-01.jpg",
+        "File:Africa, the Dinka tribe, Bahr-El-Chazal. A group (long legs) Wellcome M0000840.jpg",
+    ],
+    "Dzogchen Ground-Path-Fruit": [
+        "File:Tibetan_Thanka.jpg",
+        "File:Tibetan_Buddhist_monks.jpg",
+        "File:Dzogchen_Beara.jpg",
+    ],
+    "Harranian Sabian Cosmos": [
+        "File:Harran evleri.jpg",
+        "File:Harran-beehouses.jpg",
+        "File:Harran beehive houses (1).JPG",
+    ],
+    "Huayan Cosmos": [
+        "File:Kegon.jpg",
+        "File:Huayan_Temple.jpg",
+        "File:Foguang_Temple.jpg",
+    ],
+    "Inuit Layered Cosmos": [
+        "File:Inukshuk_in_Profile_Park.jpg",
+        "File:Inukshuk.jpg",
+        "File:Inuit_drummer.jpg",
+    ],
+    "Islamic Falasifa Cosmos": [
+        "File:Avicenna-miniatur.jpg",
+        "File:Ibn_Sina_Mausoleum_Hamadan.jpg",
+        "File:Avicenna_Title_page_Ibn_Sina.jpg",
+    ],
+    "Ismaili Emanation Cosmology": ["File:Fatimid_Caliphate.PNG"],
+    "Llullian Cosmos": ["File:Ramon_Llull.jpg"],
+    "Mazdakite Cosmos": [
+        "File:Sassanian Empire cca. 620 A.D.png",
+        "File:The Sassanid Persian Empire at it's greatest extent cca. 620 A.D.png",
+    ],
+    "Neo-Confucian Li/Qi Cosmos": ["File:Zhu_xi.jpg"],
+    "Ojibwe Midewiwin Cosmos": [
+        "File:General view of a Midewigaan Walter J. Hoffman.png",
+        "File:Mide scroll.jpg",
+    ],
+    "Tiantai Three Truths": ["File:Guoqing_Temple.jpg"],
+}
+
+
+def _commons_by_title(title: str) -> dict | None:
+    if not title.startswith("File:"):
+        title = f"File:{title}"
+    data = api_get(
+        COMMONS_API,
+        {
+            "action": "query",
+            "titles": title,
+            "prop": "imageinfo",
+            "iiprop": "url|thumburl|extmetadata|descriptionurl",
+            "iiurlwidth": "640",
+        },
+    )
+    pages = (data.get("query") or {}).get("pages") or {}
+    page = next(iter(pages.values()), {})
+    if page.get("missing") is not None:
+        return None
+    info = (page.get("imageinfo") or [{}])[0]
+    if not info.get("thumburl"):
+        return None
+    meta = info.get("extmetadata") or {}
+    if not license_ok(meta):
+        return None
+    return normalize_image(
+        {
+            "thumbnail_url": info["thumburl"],
+            "image_url": info.get("url") or info["thumburl"],
+            "image_title": title.removeprefix("File:"),
+            "image_source": "wikimedia_commons_curated",
+            "image_license": (meta.get("LicenseShortName", {}) or {}).get("value", ""),
+            "image_page_url": info.get("descriptionurl", ""),
+        }
+    )
+
+
 def _wikidata_image(label: str) -> dict | None:
     search = api_get(
         WIKIDATA_API,
@@ -324,14 +454,28 @@ def _wikidata_image(label: str) -> dict | None:
 def pick_image(row: dict) -> dict | None:
     label = row["cosmograph"]
     query = search_query(row)
-    for q in (query, label):
+    queries = [query, label]
+    if label in SEARCH_OVERRIDES:
+        queries.append(SEARCH_OVERRIDES[label])
+    seen: set[str] = set()
+    for q in queries:
+        if not q or q in seen:
+            continue
+        seen.add(q)
         hit = _commons_search(q, broad=False)
         if hit:
-            return hit
+            return normalize_image(hit)
     hit = _commons_search(label, broad=True)
     if hit:
-        return hit
-    return _wikidata_image(label)
+        return normalize_image(hit)
+    wd = _wikidata_image(label)
+    if wd:
+        return wd
+    for title in CURATED_FILES.get(label, []):
+        hit = _commons_by_title(title)
+        if hit:
+            return hit
+    return None
 
 
 def save_catalog(records: list[dict]) -> None:
@@ -339,29 +483,71 @@ def save_catalog(records: list[dict]) -> None:
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--refetch-bad",
+        action="store_true",
+        help="Re-fetch entries whose image_url is not a displayable raster (e.g. PDF).",
+    )
+    parser.add_argument(
+        "--normalize-only",
+        action="store_true",
+        help="Fix image_url to thumbnail for existing entries; no API calls.",
+    )
+    parser.add_argument(
+        "--labels",
+        nargs="*",
+        help="Only process these cosmograph labels.",
+    )
+    parser.add_argument(
+        "--sleep",
+        type=float,
+        default=2.0,
+        help="Seconds between API calls (default: 2).",
+    )
+    args = parser.parse_args()
+
     records = json.loads(CATALOG.read_text(encoding="utf-8"))
+    if args.normalize_only:
+        fixed = 0
+        for row in records:
+            thumb = row.get("thumbnail_url", "")
+            full = row.get("image_url", "")
+            if thumb and full and not is_displayable(full):
+                row["image_url"] = thumb
+                fixed += 1
+        save_catalog(records)
+        print(f"Normalized {fixed} image_url values", flush=True)
+        return
+
     found = sum(1 for r in records if r.get("thumbnail_url"))
     missed: list[str] = []
+    label_filter = set(args.labels or [])
     for i, row in enumerate(records):
         label = row["cosmograph"]
-        if row.get("thumbnail_url"):
+        if label_filter and label not in label_filter:
+            continue
+        if not needs_fetch(row, refetch_bad=args.refetch_bad):
+            if row.get("thumbnail_url") and row.get("image_url"):
+                row.update(normalize_image(dict(row)))
             continue
         try:
             img = pick_image(row)
         except Exception as exc:  # noqa: BLE001
             print(f"[{i + 1}/{len(records)}] {label}: ERROR {exc}", flush=True)
             missed.append(label)
-            time.sleep(2.0)
+            time.sleep(args.sleep)
             continue
         if img:
             row.update(img)
-            found += 1
+            if not row.get("thumbnail_url"):
+                found += 1
             print(f"[{i + 1}/{len(records)}] {label}: {img['image_title'][:60]}", flush=True)
         else:
             missed.append(label)
             print(f"[{i + 1}/{len(records)}] {label}: (no image)", flush=True)
         save_catalog(records)
-        time.sleep(2.0)
+        time.sleep(args.sleep)
     print(f"\nDone: {found}/{len(records)} with images; {len(missed)} missed", flush=True)
     if missed:
         print("Missed:", ", ".join(missed[:20]), "..." if len(missed) > 20 else "", flush=True)

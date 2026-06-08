@@ -132,9 +132,9 @@ function eventFromEntry(
     autolink: false,
   };
 
-  if (image?.imageUrl) {
+  if (image?.thumbnailUrl) {
     slide.media = {
-      url: image.imageUrl,
+      url: image.thumbnailUrl,
       thumbnail: image.thumbnailUrl,
       alt: image.title ?? entity.label,
       caption: facetLine(entity) || undefined,
