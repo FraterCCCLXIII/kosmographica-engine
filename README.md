@@ -50,5 +50,9 @@ Kosmographica is designed to integrate, not replace, these sibling projects:
 
 ## Status
 
-Design stage — these documents are discussion drafts. See the open questions in
+🚧 **Design stage** — these documents are discussion drafts. See the open questions in
 [`docs/core-meta-model.md`](docs/core-meta-model.md) §10.
+
+## License
+
+This project is currently in early development. License information will be added soon.
